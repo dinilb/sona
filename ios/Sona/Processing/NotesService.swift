@@ -40,6 +40,8 @@ final class NotesService {
     private(set) var lastError: String?
     /// Recordings that failed 3 times: in Spool/failed, their audio kept.
     private(set) var failed = 0
+    /// Watch recordings that wouldn't decode at all after `WatchInbox.decodeTries`: kept staged, said on Home.
+    var watchUnreadable = 0
     /// Newest first: the notes where notes go and the ones still waiting on this iPhone to move there.
     private(set) var notes: [NoteSummary] = []
     /// Where notes go now (the app's iCloud container, this iPhone's Documents/Notes, the picked folder, or staging

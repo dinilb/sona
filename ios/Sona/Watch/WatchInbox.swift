@@ -29,6 +29,8 @@ nonisolated final class WatchInbox: @unchecked Sendable {  // lets, and the rece
     static let source = NoteSource.watch
     /// Watch ids remembered (oldest forgotten first). The watch resends within hours, so a thousand is plenty.
     static let remembered = 1000
+    /// Decodes a staged recording gets before what does decode becomes its note (`adoptWhatDecodes`).
+    static let decodeTries = 3
 
     let spool: Spool
     let receivedFile: URL
@@ -165,6 +167,18 @@ nonisolated final class WatchInbox: @unchecked Sendable {  // lets, and the rece
 
     private func stagedAudio(_ id: String) -> URL { stagingDir.appendingPathComponent("\(id).aac") }
     private func stagedInfo(_ id: String) -> URL { stagingDir.appendingPathComponent("\(id).json") }
+    /// How many decodes of it failed so far, as a number in text; absent before the first failure.
+    private func stagedTries(_ id: String) -> URL { stagingDir.appendingPathComponent("\(id).tries") }
+
+    private func failedTries(_ id: String) -> Int {
+        (try? String(contentsOf: stagedTries(id), encoding: .utf8)).flatMap { Int($0) } ?? 0
+    }
+
+    /// Staged recordings that still wouldn't decode after `decodeTries`, not even in part: kept here (the watch has
+    /// let its copy go), and counted for Home's banner.
+    func unreadableCount() -> Int {
+        lock.withLock { stagedRecordings() }.filter { failedTries($0.id) >= Self.decodeTries }.count
+    }
 
     /// Raw audio, like the spool: out of iCloud Backup and computer backups, and readable once the phone has been
     /// unlocked since it started (it's received with the phone locked).
@@ -201,7 +215,8 @@ nonisolated final class WatchInbox: @unchecked Sendable {  // lets, and the rece
     /// Turns the staged recordings into spool recordings, decoding each to the spool's 16 kHz mono 16-bit WAV. Runs off
     /// WCSession's queue and the main actor (it decodes), at launch and after each one arrives. Returns the spool ids
     /// added, to queue for notes. One that fails stays staged and is tried again next time: it was acknowledged, so
-    /// this is its only copy.
+    /// this is its only copy. After `decodeTries` failures what decodes of it goes in; one that decodes not at all stays
+    /// and is counted (`unreadableCount`).
     func convertStaged() -> [String] {
         convertLock.withLock {
             let fm = FileManager.default
@@ -222,11 +237,46 @@ nonisolated final class WatchInbox: @unchecked Sendable {  // lets, and the rece
                     // The JSON first: without it the audio is never converted twice.
                     try? fm.removeItem(at: info)
                     try? fm.removeItem(at: audio)
+                    try? fm.removeItem(at: stagedTries(recording.id))
                 } catch {
-                    Log.note("a watch recording couldn't be converted yet; it stays on this iPhone: \(Log.describe(error))")
+                    let tries = failedTries(recording.id) + 1
+                    try? Data("\(tries)".utf8).write(to: stagedTries(recording.id))
+                    Log.note("a watch recording couldn't be converted (\(tries) tries); it stays on this iPhone: \(Log.describe(error))")
+                    // It was acknowledged, so this is its only copy: after a few tries, what decodes becomes its note
+                    // rather than all of it waiting for a decode that never comes.
+                    if tries >= Self.decodeTries, let spoolID = adoptWhatDecodes(audio, startedAt: recording.startedAt) {
+                        added.append(spoolID)
+                        try? fm.removeItem(at: info)
+                        try? fm.removeItem(at: audio)
+                        try? fm.removeItem(at: stagedTries(recording.id))
+                    }
                 }
             }
             return added
+        }
+    }
+
+    /// Decodes `audio` up to where it stops decoding and puts that in the spool. Nil when not even half a second
+    /// decodes, or it couldn't be saved: then it stays staged, and Home says so (`unreadableCount`).
+    private func adoptWhatDecodes(_ audio: URL, startedAt: Date) -> String? {
+        let fm = FileManager.default
+        let incoming = fm.temporaryDirectory.appendingPathComponent("watch-\(UUID().uuidString).wav")
+        defer { try? fm.removeItem(at: incoming) }
+        do {
+            let writer = try WavFile(creating: incoming)
+            if let reader = try? AudioFileReader(url: audio) {
+                while let chunk = try? reader.next() { try writer.append(chunk) }
+            }
+            try writer.finish()
+            guard WavFile.duration(of: incoming) >= 0.5 else { return nil }
+            let spoolID = try lock.withLock { try adopt(incoming, startedAt: startedAt) }
+            if let spoolID {
+                Log.note("watch recording \(Log.ref(startedAt)): kept the \(String(format: "%.1f", WavFile.duration(of: spool.wav(spoolID)))) s that decode")
+            }
+            return spoolID
+        } catch {
+            Log.note("a watch recording's decodable part couldn't be saved: \(Log.describe(error))")
+            return nil
         }
     }
 

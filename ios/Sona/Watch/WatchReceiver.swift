@@ -41,8 +41,11 @@ nonisolated final class WatchReceiver: NSObject, WCSessionDelegate, WatchAcknowl
     private nonisolated static func convertStaged(_ inbox: WatchInbox) {
         Task { @MainActor in
             let time = BackgroundTime(name: "Convert the watch's recordings")
-            let added = await Task.detached(priority: .utility) { inbox.convertStaged() }.value
+            let (added, unreadable) = await Task.detached(priority: .utility) {
+                (inbox.convertStaged(), inbox.unreadableCount())
+            }.value
             for spoolID in added { NotesService.shared.enqueue(spoolID) }
+            NotesService.shared.watchUnreadable = unreadable
             if countsForWake(added: added) { WatchWakeHold.shared.received() }
             time.end()
         }

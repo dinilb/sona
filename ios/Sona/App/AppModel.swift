@@ -261,6 +261,13 @@ final class AppModel {
                 id: "failed", text: "\(notes.failed) recording\(notes.failed == 1 ? "" : "s") couldn't be transcribed. The audio is kept.",
                 isProblem: true, action: .retryFailed))
         }
+        if notes.watchUnreadable > 0 {
+            let n = notes.watchUnreadable
+            out.append(Banner(
+                id: "watch-unreadable",
+                text: "\(n) watch recording\(n == 1 ? "" : "s") couldn't be read. The audio is kept on this iPhone.",
+                isProblem: true))
+        }
         return out
     }
 

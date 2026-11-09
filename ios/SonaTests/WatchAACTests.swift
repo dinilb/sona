@@ -164,6 +164,43 @@ struct WatchAACTests {
         #expect(Spool(dir: spoolDir).pending().isEmpty)
     }
 
+    /// After a few failed decodes, the part that decodes becomes the note: the watch let its copy go, so nothing of it
+    /// may wait forever.
+    @Test func aRecordingThatOnlyPartlyDecodesKeepsWhatDecodesAfterThreeTries() throws {
+        let id = try stagePair(seconds: 3)
+        let audio = staging.appendingPathComponent("\(id).aac")
+        // Garbage after the first half: AVFoundation stops there.
+        let whole = try Data(contentsOf: audio)
+        try (whole.prefix(whole.count / 2) + Data(repeating: 0xFF, count: 20_000)).write(to: audio)
+        var added: [String] = []
+        for _ in 0..<WatchInbox.decodeTries {
+            added = inbox().convertStaged()
+            if !added.isEmpty { break }
+        }
+        // Either it decoded as a whole (AVFoundation skipped the garbage) or what decodes went in by the third try.
+        let spoolID = try #require(added.first)
+        let entry = try #require(Spool(dir: spoolDir).load(spoolID))
+        #expect(entry.source == NoteSource.watch)
+        #expect(WavFile.duration(of: Spool(dir: spoolDir).wav(spoolID)) >= 0.5)
+        #expect(stagedFiles().isEmpty)
+        #expect(inbox().unreadableCount() == 0)
+    }
+
+    /// Nothing decodes at all: kept staged, and counted for Home's banner once its tries are used up.
+    @Test func aRecordingThatNeverDecodesIsCountedAsUnreadable() throws {
+        let url = dir.appendingPathComponent("broken.aac")
+        try Data(repeating: 0x5A, count: 4_000).write(to: url)
+        let recording = WatchRecording(startedAt: Date(), duration: 2)
+        #expect(try inbox().receive(file: url, metadata: recording.metadata) == .staged)
+        for n in 1...WatchInbox.decodeTries {
+            #expect(inbox().unreadableCount() == 0, "not yet, after \(n - 1) tries")
+            #expect(inbox().convertStaged().isEmpty)
+        }
+        #expect(inbox().unreadableCount() == 1)
+        #expect(FileManager.default.fileExists(atPath: staging.appendingPathComponent("\(recording.id).aac").path))
+        #expect(Spool(dir: spoolDir).pending().isEmpty)
+    }
+
     /// Under half a second (a double tap) is acknowledged and staged like any other, then dropped, not kept.
     @Test func aVeryShortAACIsDropped() throws {
         _ = try stagePair(seconds: 0.2)
