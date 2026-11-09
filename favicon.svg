@@ -1,9 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Sona's mark: five bars of a voice, the logo's heights without its dithered ends. Ink, or white in a dark browser. -->
-  <style>rect { fill: #1d1d1f; } @media (prefers-color-scheme: dark) { rect { fill: #f5f5f7; } }</style>
-  <rect x="2" y="11.5" width="4" height="9" rx="2"/>
-  <rect x="8" y="6.5" width="4" height="19" rx="2"/>
-  <rect x="14" y="2.5" width="4" height="27" rx="2"/>
-  <rect x="20" y="8.5" width="4" height="15" rx="2"/>
-  <rect x="26" y="5.5" width="4" height="21" rx="2"/>
+  <!-- Sona's mark: the app icon's wave and its reflection on red. -->
+  <rect width="32" height="32" rx="7" fill="#FF3B30"/>
+  <rect x="5.5" y="13.5" width="2.5" height="4" rx="1.25" fill="#FFFFFF"/>
+  <rect x="5.5" y="18.5" width="2.5" height="2" rx="1.25" fill="#FFB3AD"/>
+  <rect x="9.5" y="9.5" width="2.5" height="8" rx="1.25" fill="#FFFFFF"/>
+  <rect x="9.5" y="18.5" width="2.5" height="4" rx="1.25" fill="#FFB3AD"/>
+  <rect x="13.5" y="5.5" width="2.5" height="12" rx="1.25" fill="#FFFFFF"/>
+  <rect x="13.5" y="18.5" width="2.5" height="6" rx="1.25" fill="#FFB3AD"/>
+  <rect x="17.5" y="8.5" width="2.5" height="9" rx="1.25" fill="#FFFFFF"/>
+  <rect x="17.5" y="18.5" width="2.5" height="4" rx="1.25" fill="#FFB3AD"/>
+  <rect x="21.5" y="11.5" width="2.5" height="6" rx="1.25" fill="#FFFFFF"/>
+  <rect x="21.5" y="18.5" width="2.5" height="3" rx="1.25" fill="#FFB3AD"/>
+  <rect x="25.5" y="13.5" width="2.5" height="4" rx="1.25" fill="#FFFFFF"/>
+  <rect x="25.5" y="18.5" width="2.5" height="2" rx="1.25" fill="#FFB3AD"/>
 </svg>
