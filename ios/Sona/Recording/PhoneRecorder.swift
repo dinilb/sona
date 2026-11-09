@@ -745,12 +745,15 @@ nonisolated enum RecordingError: LocalizedError, LogSafeError {
     /// Never asked yet, and a start from the background can't ask: tapping Record in the app does.
     case micNotAsked
     case lowDisk
+    /// Onboarding isn't done, and a start from the background can't open the app (`AppModel.outsideStart`).
+    case notSetUp
 
     var errorDescription: String? {
         switch self {
         case .micDenied: "Sona can't use the microphone. Turn it on in Settings > Apps > Sona."
         case .micNotAsked: "Open Sona and tap Record once to allow the microphone."
         case .lowDisk: "There isn't enough free space to record. Sona needs 200 MB."
+        case .notSetUp: "Open Sona and finish setting it up, then you can record."
         }
     }
 }

@@ -122,7 +122,8 @@ final class AppModel {
     /// A link a widget opened (see `linkAction`).
     func handle(_ url: URL) {
         let action = Self.linkAction(
-            DeepLink.trusted(url: url), isRecording: isRecording, cutShortAt: cutShortAt, launchedAt: launchedAt, now: Date())
+            DeepLink.trusted(url: url), onboardingDone: onboardingDone, isRecording: isRecording, cutShortAt: cutShortAt,
+            launchedAt: launchedAt, now: Date())
         switch action {
         case .start: Task { await startRecording() }
         case .stop: Task { await stopRecording() }
@@ -141,10 +142,14 @@ final class AppModel {
     /// running, and never stops one; a stop link only stops one. Right after a launch that found the last recording
     /// cut short (the app was closed or crashed while it recorded), a record link comes from a widget that still showed
     /// that recording: it only opens the app, which says what happened, rather than starting a second recording.
-    static func linkAction(_ link: DeepLink?, isRecording: Bool, cutShortAt: Date?, launchedAt: Date, now: Date) -> LinkAction {
+    /// Before onboarding is done a record link only opens the app too: the welcome screen has no Stop, and the mic,
+    /// where notes go and the model download haven't been asked about yet.
+    static func linkAction(
+        _ link: DeepLink?, onboardingDone: Bool, isRecording: Bool, cutShortAt: Date?, launchedAt: Date, now: Date
+    ) -> LinkAction {
         switch link {
         case .record:
-            if isRecording { return .nothing }
+            if isRecording || !onboardingDone { return .nothing }
             if cutShortAt != nil, now.timeIntervalSince(launchedAt) < cutShortGrace { return .nothing }
             return .start
         case .stop:
@@ -152,6 +157,17 @@ final class AppModel {
         case nil:
             return .nothing
         }
+    }
+
+    enum OutsideStart: Equatable { case record, openApp, stay, refuse }
+
+    /// What a start from outside the app does (the Record control, Siri, the Action button). Before onboarding is done
+    /// it never records, for the same reasons as a record link: off screen it opens Sona instead (at onboarding), on
+    /// screen (Control Center over onboarding) it does nothing, and where iOS can't bring the app forward it says why.
+    static func outsideStart(onboardingDone: Bool, offScreen: Bool, canOpenApp: Bool) -> OutsideStart {
+        if onboardingDone { return .record }
+        if !offScreen { return .stay }
+        return canOpenApp ? .openApp : .refuse
     }
 
     // MARK: lifecycle

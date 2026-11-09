@@ -168,8 +168,12 @@ struct V1ScreensTests {
 
     @Test func aRecordLinkRightAfterACrashMidRecordingStartsNothing() {
         let launched = Date(timeIntervalSince1970: 1_794_000_000)
-        func action(_ link: DeepLink?, recording: Bool = false, cutShort: Date? = nil, after seconds: TimeInterval = 1) -> AppModel.LinkAction {
-            AppModel.linkAction(link, isRecording: recording, cutShortAt: cutShort, launchedAt: launched, now: launched + seconds)
+        func action(
+            _ link: DeepLink?, onboarded: Bool = true, recording: Bool = false, cutShort: Date? = nil, after seconds: TimeInterval = 1
+        ) -> AppModel.LinkAction {
+            AppModel.linkAction(
+                link, onboardingDone: onboarded, isRecording: recording, cutShortAt: cutShort, launchedAt: launched,
+                now: launched + seconds)
         }
         let crashed = launched - 600
         #expect(action(.record) == .start)
@@ -182,5 +186,31 @@ struct V1ScreensTests {
         #expect(action(.stop, recording: true) == .stop)
         #expect(action(.stop) == .nothing)
         #expect(action(nil) == .nothing)
+    }
+
+    @Test func nothingFromOutsideRecordsBeforeOnboardingIsDone() {
+        let launched = Date(timeIntervalSince1970: 1_794_000_000)
+        func action(_ link: DeepLink?, onboarded: Bool, recording: Bool = false) -> AppModel.LinkAction {
+            AppModel.linkAction(
+                link, onboardingDone: onboarded, isRecording: recording, cutShortAt: nil, launchedAt: launched,
+                now: launched + 60)
+        }
+        // A fresh install whose first tap is the widget: the link only opens the app, at the welcome.
+        #expect(action(.record, onboarded: false) == .nothing)
+        #expect(action(.record, onboarded: true) == .start)
+        // A recording that somehow runs can still be stopped.
+        #expect(action(.stop, onboarded: false, recording: true) == .stop)
+
+        // The Record control, Siri, the Action button.
+        func start(_ onboarded: Bool, offScreen: Bool = true, canOpenApp: Bool = true) -> AppModel.OutsideStart {
+            AppModel.outsideStart(onboardingDone: onboarded, offScreen: offScreen, canOpenApp: canOpenApp)
+        }
+        #expect(start(true) == .record)
+        #expect(start(true, offScreen: false) == .record)
+        #expect(start(true, canOpenApp: false) == .record)
+        #expect(start(false) == .openApp)
+        #expect(start(false, offScreen: false) == .stay)
+        #expect(start(false, canOpenApp: false) == .refuse)
+        #expect(RecordingError.notSetUp.errorDescription?.isEmpty == false)
     }
 }
