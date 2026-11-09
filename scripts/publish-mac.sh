@@ -30,8 +30,15 @@ TAG=mac-$VERSION
 NOTES=${NOTES:-$(git log -1 --format=%s)}
 URL="https://github.com/dinilb/sona/releases/download/$TAG/Sona-$VERSION.dmg"
 
-# After stapling (which changes the file), so the signature covers what people download.
-SIG=$("$SPARKLE_BIN/sign_update" --account sona "$DMG")  # sparkle:edSignature="..." length="..."
+# After stapling (which changes the file), so the signature covers what people download. The key leaves the keychain
+# only for this, through generate_keys (which made it, so there's no keychain prompt; sign_update reading the
+# keychain itself stops on one), into a private temp folder that's deleted straight after.
+KEYDIR=$(mktemp -d)
+chmod 700 "$KEYDIR"
+trap 'rm -f "$KEYDIR/key"; rmdir "$KEYDIR" 2>/dev/null || true' EXIT
+"$SPARKLE_BIN/generate_keys" --account sona -x "$KEYDIR/key" >/dev/null
+SIG=$("$SPARKLE_BIN/sign_update" --ed-key-file "$KEYDIR/key" "$DMG")  # sparkle:edSignature="..." length="..."
+rm -f "$KEYDIR/key"
 [[ "$SIG" == *edSignature* ]] || die "sign_update gave no signature"
 
 echo "==> GitHub release $TAG"
