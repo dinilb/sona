@@ -22,7 +22,7 @@ Please don't open a public issue for a security or privacy problem. Use [GitHub'
 - Notes and their folders are private to your account (files 0600, folders 0700), and so is the support folder and everything in it (settings, log, spool, search index).
 - The iPhone's notes say where they were recorded (a street name and its coordinates). On the Mac the street names are in the search index, so a search finds them, and the MCP server shows them to AI apps; the coordinates stay in the note. Neither is ever logged.
 - The app is signed with the hardened runtime (every build, not just releases), so another process can't inject a library and borrow its microphone, Accessibility or System Audio Recording permission.
-- A settings file that can't be read never turns anything on: always-on, AI access and Mac audio stay off until a setting is changed.
+- A settings file that can't be read never turns anything on: always-on, AI access and Mac audio stay off, and the iPhone import doesn't run, until a setting is changed. A settings file without the AI access switch reads as off.
 - Dictation never pastes into a password field, and never puts a password manager's copied secret back on the clipboard.
-- The MCP server runs only when an AI app starts it, talks over stdio only, and only reads the notes and the live transcript (plus speaker renames, which rewrite the note). With AI access off in Settings, it answers nothing else.
+- The MCP server runs only when an AI app starts it, talks over stdio only, and only reads the notes and the live transcript (plus speaker renames, which rewrite the note). With AI access off in Settings, it answers nothing else. It never reads, renames or deletes through a symlink in the notes folder.
 - What an AI app does with what it reads is up to that app.
