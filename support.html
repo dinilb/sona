@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support: Sona</title>
+<meta name="description" content="Help with Sona on iPhone, Apple Watch and Mac: where notes go, the speech model download, the watch, the Mac app and deleting notes.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<!-- Full URLs for link previews. If the site moves (a custom domain), change these. -->
+<link rel="canonical" href="https://dinilb.github.io/sona/support.html">
+<meta property="og:url" content="https://dinilb.github.io/sona/support.html">
+<meta property="og:image" content="https://dinilb.github.io/sona/img/og.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sona">
+<meta property="og:title" content="Sona support">
+<meta property="og:description" content="Help with Sona on iPhone, Apple Watch and Mac.">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="wrap top">
+  <a class="brand" href="./" aria-label="Sona, home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><g fill="currentColor"><rect x="2" y="11.5" width="4" height="9" rx="2"/><rect x="8" y="6.5" width="4" height="19" rx="2"/><rect x="14" y="2.5" width="4" height="27" rx="2"/><rect x="20" y="8.5" width="4" height="15" rx="2"/><rect x="26" y="5.5" width="4" height="21" rx="2"/></g></svg>
+    Sona
+  </a>
+  <nav class="links" aria-label="Pages">
+    <a href="privacy.html">Privacy</a>
+    <a href="support.html" aria-current="page">Support</a>
+    <a href="https://github.com/dinilb/sona">GitHub</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap prose">
+  <h1>Support</h1>
+  <p class="updated">Sona for iPhone and Apple Watch is called Sona Notes on the App Store.</p>
+
+  <section class="qa" id="notes" aria-labelledby="notes-q">
+    <h2 id="notes-q">Where do my notes go?</h2>
+    <p>Where you chose when you set Sona up:</p>
+    <ul>
+      <li><strong>iCloud</strong>, the default when your iPhone is signed in to iCloud: Sona's folder in your iCloud Drive. You can see it in the Files app, and Sona for Mac picks your notes up from there.</li>
+      <li><strong>On this iPhone</strong>: the notes stay on the phone. They're in your iPhone's backup, never in iCloud Drive.</li>
+      <li><strong>Other folder</strong>: a folder you pick in the Files app.</li>
+    </ul>
+    <p>You can change it in Sona's Settings. Notes already saved stay where they are, and new notes go to the new place. Each note is a text file with its audio beside it, so other apps can open it too.</p>
+  </section>
+
+  <section class="qa" id="model" aria-labelledby="model-q">
+    <h2 id="model-q">Why does Sona download 480 MB?</h2>
+    <p>That's the speech model, which turns your voice into text on the iPhone itself. Sona downloads it once, from Hugging Face, when you set it up, and again only if it goes missing. It takes a couple of minutes on Wi-Fi.</p>
+    <p>Keep Sona open while it downloads. If you leave, it picks up where it left off when you come back. You can record in the meantime: those recordings are written down once the model is ready.</p>
+  </section>
+
+  <section class="qa" id="watch" aria-labelledby="watch-q">
+    <h2 id="watch-q">How do I record on my Apple Watch?</h2>
+    <p>Open Sona on your watch and tap the record button, or add Sona to your watch face and tap it there. Tap again to stop. The recording goes to your iPhone, which writes the note and marks it as from your watch.</p>
+    <p>If your iPhone isn't nearby, the watch keeps the recording and sends it when the phone is back in range. The watch app needs Sona on a paired iPhone. Watch recordings don't get a place.</p>
+  </section>
+
+  <section class="qa" id="mac" aria-labelledby="mac-q">
+    <h2 id="mac-q">Is there a Mac app?</h2>
+    <p>Yes. Sona for Mac is free and open source, for Apple silicon Macs with macOS 14 or later. It isn't on the App Store, and there's no signed download yet: for now you build it from the source on GitHub, which takes a few minutes with Xcode. It can listen all day and turn each conversation into a note, let you dictate into any app by holding a key, and let AI apps read your notes if you turn that on. It also copies in your iPhone's notes from iCloud Drive.</p>
+    <p>You don't need it to use Sona on your iPhone. <a href="https://github.com/dinilb/sona#install">How to install Sona for Mac</a></p>
+  </section>
+
+  <section class="qa" id="delete" aria-labelledby="delete-q">
+    <h2 id="delete-q">How do I delete a note?</h2>
+    <p>In Sona, swipe left on the note, or open it and tap Delete. Its text, data and audio are deleted, from iCloud Drive too if that's where it is. If you use Sona for Mac, its copy stays on the Mac until you delete it there.</p>
+    <p>To keep less audio, choose how long it stays in Settings: 30 days, forever, or not at all once the note is written. Deleting the app deletes everything Sona kept on the iPhone; notes in iCloud Drive stay until you delete them in the Files app.</p>
+  </section>
+
+  <section class="qa" id="languages" aria-labelledby="languages-q">
+    <h2 id="languages-q">Which languages does Sona understand?</h2>
+    <p>English only, for now.</p>
+  </section>
+
+  <section class="qa" id="offline" aria-labelledby="offline-q">
+    <h2 id="offline-q">Does Sona need the internet?</h2>
+    <p>Only to download the speech model once, and to look up street names if you allow location. Recording and writing notes work offline. If your notes go to iCloud, they sync when you're back online.</p>
+  </section>
+
+  <section class="qa" id="help" aria-labelledby="help-q">
+    <h2 id="help-q">Get help</h2>
+    <p>Something not working, or a question that isn't answered here? <a href="https://github.com/dinilb/sona/issues">Open an issue on GitHub</a>. Say which device and version you're on, and what happened.</p>
+    <p class="muted">Issues are public, so don't paste notes or recordings you want to keep private.</p>
+    <p>To report a privacy or security problem privately, use <a href="https://github.com/dinilb/sona/security/advisories/new">GitHub's private vulnerability reporting</a> on the Sona repository.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Sona is made by Dinil Balasuriya.</p>
+    <nav class="links" aria-label="Footer">
+      <a href="privacy.html">Privacy</a>
+      <a href="support.html" aria-current="page">Support</a>
+      <a href="https://github.com/dinilb/sona">GitHub</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
