@@ -157,9 +157,11 @@ extension MCPServer {
 
     /// Seconds `from..<to` of a recording not yet a note, transcribed now (or what's done by `deadline`), as a section.
     func audioSection(_ recording: SpoolRecording, from: Double, to: Double, deadline: Date, running: Bool) -> Section {
-        let state = !recording.closed
-            ? (running ? "still recording" : "left from when Sona stopped; it becomes a note when Sona starts")
-            : "ended, its note is being written"
+        let state = switch (recording.closed, running) {
+            case (false, true): "still recording"
+            case (true, true): "ended, its note is being written"
+            default: "left from when Sona stopped; it becomes a note when Sona starts"
+        }
         var section = Section(start: recording.startedAt.addingTimeInterval(from), header: "", rows: [])
         var speakers: [String] = []
         do {
