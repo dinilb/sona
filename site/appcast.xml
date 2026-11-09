@@ -7,6 +7,15 @@
     <description>Updates to Sona for Mac</description>
     <language>en</language>
     <item>
+      <title>Sona 0.2.1</title>
+      <pubDate>Mon, 09 Nov 2026 20:18:29 +1000</pubDate>
+      <sparkle:version>202611091016</sparkle:version>
+      <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/dinilb/sona/releases/tag/mac-0.2.1</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/dinilb/sona/releases/download/mac-0.2.1/Sona-0.2.1.dmg" type="application/octet-stream" sparkle:edSignature="V4ncD/Xjvrt6GyCvt5WpYLXDt8XKjsmtOqDuNj3itAvcNoFWK0q8EpU3BgpYtbwtGjcmS9fgjmNRuut8Ezu6BA==" length="9503514"/>
+    </item>
+    <item>
       <title>Sona 0.2.0</title>
       <pubDate>Mon, 09 Nov 2026 19:48:22 +1000</pubDate>
       <sparkle:version>202611090944</sparkle:version>
