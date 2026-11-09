@@ -83,7 +83,8 @@ public struct Settings: Codable, Equatable, Sendable {
         alwaysOn = try c.decodeIfPresent(Bool.self, forKey: .alwaysOn) ?? d.alwaysOn
         dictation = try c.decodeIfPresent(Bool.self, forKey: .dictation) ?? d.dictation
         dictationKey = (try? c.decodeIfPresent(DictationShortcut.self, forKey: .dictationKey)) ?? d.dictationKey
-        mcp = try c.decodeIfPresent(Bool.self, forKey: .mcp) ?? d.mcp
+        // Off when the file doesn't say, like the first-run screen: AI apps only read notes once someone turned it on.
+        mcp = try c.decodeIfPresent(Bool.self, forKey: .mcp) ?? false
         speakers = try c.decodeIfPresent(Bool.self, forKey: .speakers) ?? d.speakers
         quietMinutes = try c.decodeIfPresent(Double.self, forKey: .quietMinutes) ?? d.quietMinutes
         model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model

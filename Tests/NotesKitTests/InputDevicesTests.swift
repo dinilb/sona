@@ -76,15 +76,15 @@ final class InputDevicesTests: XCTestCase {
         XCTAssertEqual(back.micUID, "USB-Yeti")
     }
 
-    /// A file from before the one app gets the new switches' defaults: always on, dictation on fn, AI access
-    /// and speakers on.
+    /// A file from before the one app gets the new switches' defaults: always on, dictation on fn and speakers on.
+    /// AI access is off, as on the first-run screen: a file that doesn't say never lets AI apps read the notes.
     func testOldSettingsGetTheNewDefaults() throws {
         let old = #"{"notesFolder":"/tmp/n","quietMinutes":0.1,"model":"v2","keepAudio":false,"launchAtLogin":false}"#
         let s = try JSONDecoder().decode(Settings.self, from: Data(old.utf8))
         XCTAssertTrue(s.alwaysOn)
         XCTAssertTrue(s.dictation)
         XCTAssertEqual(s.dictationKey, .fn)
-        XCTAssertTrue(s.mcp)
+        XCTAssertFalse(s.mcp)
         XCTAssertTrue(s.speakers)
         XCTAssertNil(s.pausedUntil)
         XCTAssertFalse(s.isPaused())

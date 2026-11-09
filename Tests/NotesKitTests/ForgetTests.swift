@@ -665,7 +665,9 @@ final class ForgetTests: XCTestCase {
         XCTAssertTrue(Settings.load().onboarded)
         try Data(old.utf8).write(to: Paths.settingsFile)
         XCTAssertTrue(Settings.load().onboarded)
-        XCTAssertTrue(Settings.aiAccessAllowed, "an older file: AI access was on by default")
+        XCTAssertFalse(Settings.aiAccessAllowed, "a file that doesn't say: AI access stays off")
+        try Data(#"{"alwaysOn": true, "mcp": true}"#.utf8).write(to: Paths.settingsFile)
+        XCTAssertTrue(Settings.aiAccessAllowed, "an older file that turned it on")
     }
 
     /// A settings file that can't be read never turns recording or AI access on (the defaults would), and is left
