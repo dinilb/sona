@@ -20,6 +20,11 @@ nonisolated final class WatchReceiver: NSObject, WCSessionDelegate, WatchAcknowl
     /// Bumped by each request to publish the inventory, so only the last of a burst publishes.
     private let inventoryRequest = OSAllocatedUnfairLock(initialState: 0)
     private static let inventoryQueue = DispatchQueue(label: "com.dinilb.sona.watch.inventory", qos: .utility)
+    /// Decodes run here, one pass at a time, on a thread of their own: a detached task per arrival blocked on the
+    /// inbox's lock in the cooperative pool, and six or so queued filled it, so transcription waited behind them.
+    private static let convertQueue = DispatchQueue(label: "com.dinilb.sona.watch.convert", qos: .utility)
+    /// A pass is queued and hasn't started: an arrival now is taken by it (it lists the folder when it starts).
+    private static let convertQueued = OSAllocatedUnfairLock(initialState: false)
 
     /// At launch. Does nothing on a device without watch support.
     @MainActor
@@ -39,11 +44,20 @@ nonisolated final class WatchReceiver: NSObject, WCSessionDelegate, WatchAcknowl
     /// queues them to become notes. With background time asked for, so a launch from the watch's wake isn't suspended
     /// halfway through an hour's decode (it would carry on next time, but later).
     private nonisolated static func convertStaged(_ inbox: WatchInbox) {
+        let alreadyQueued = convertQueued.withLock { queued in
+            defer { queued = true }
+            return queued
+        }
+        guard !alreadyQueued else { return }
         Task { @MainActor in
             let time = BackgroundTime(name: "Convert the watch's recordings")
-            let (added, unreadable) = await Task.detached(priority: .utility) {
-                (inbox.convertStaged(), inbox.unreadableCount())
-            }.value
+            let (added, unreadable) = await withCheckedContinuation { done in
+                convertQueue.async {
+                    // From here an arrival queues one more pass, which runs after this one.
+                    convertQueued.withLock { $0 = false }
+                    done.resume(returning: (inbox.convertStaged(), inbox.unreadableCount()))
+                }
+            }
             for spoolID in added { NotesService.shared.enqueue(spoolID) }
             NotesService.shared.watchUnreadable = unreadable
             if countsForWake(added: added) { WatchWakeHold.shared.received() }
@@ -141,6 +155,8 @@ nonisolated final class WatchReceiver: NSObject, WCSessionDelegate, WatchAcknowl
             publishInventory(after: 2)
         } catch {
             Log.note("a watch recording couldn't be saved; the watch will send it again: \(Log.describe(error))")
+            // The inventory still goes out, so the watch hears soon that this one isn't here rather than waiting minutes.
+            publishInventory(after: 2)
         }
     }
 }
