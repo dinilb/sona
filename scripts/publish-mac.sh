@@ -12,12 +12,18 @@ die() { echo "publish FAILED: $*" >&2; exit 1; }
 
 SPARKLE_BIN=${SPARKLE_BIN:-$HOME/.sparkle/bin}
 [[ -x "$SPARKLE_BIN/sign_update" ]] || die "no sign_update in $SPARKLE_BIN (download Sparkle's release and set SPARKLE_BIN to its bin/)"
-APP=build/release/stage/Sona.app
-[[ -d "$APP" ]] || die "no $APP: run make release first"
-VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")
-BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")
-DMG=build/release/Sona-$VERSION.dmg
-[[ -f "$DMG" ]] || die "no $DMG: run make release first"
+# The version and build number come from the app inside the DMG (make release removes its staging folder).
+DMG=$(ls -t build/release/Sona-*.dmg 2>/dev/null | head -1)
+[[ -n "$DMG" ]] || die "no DMG in build/release: run make release first"
+MNT=$(mktemp -d)
+hdiutil attach -quiet -nobrowse -readonly -noautoopen -mountpoint "$MNT" "$DMG"
+PLIST="$MNT/Sona.app/Contents/Info.plist"
+VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")
+BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")
+FEED=$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$PLIST" 2>/dev/null || true)
+hdiutil detach -quiet "$MNT"; rmdir "$MNT"
+[[ "$DMG" == "build/release/Sona-$VERSION.dmg" ]] || die "$DMG holds version $VERSION"
+[[ -n "$FEED" ]] || die "the app in $DMG has no SUFeedURL, so it couldn't take later updates"
 spctl -a -t open --context context:primary-signature "$DMG" 2>/dev/null || die "Gatekeeper doesn't accept $DMG"
 [[ -z "$(git status --porcelain)" ]] || die "uncommitted changes"
 TAG=mac-$VERSION
