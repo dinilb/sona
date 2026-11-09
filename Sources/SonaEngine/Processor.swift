@@ -379,18 +379,20 @@ public actor Processor {
         }
     }
 
-    /// Flushes each file to disk (fsync), then their folder, so the renames that put them there stick too. Throws if a
-    /// file can't be opened or flushed.
+    /// Flushes each file to disk, then their folder, so the renames that put them there stick too. F_FULLFSYNC, like the
+    /// spool's checkpoints: on macOS plain fsync can leave them in the drive's own cache, which a power cut loses. Plain
+    /// fsync where a disk doesn't take F_FULLFSYNC (some network and external ones). Throws if a file can't be opened or
+    /// flushed.
     static func syncToDisk(_ files: [URL]) throws {
         for file in files {
             let handle = try FileHandle(forWritingTo: file)
             defer { try? handle.close() }
-            try handle.synchronize()
+            if fcntl(handle.fileDescriptor, F_FULLFSYNC) != 0 { try handle.synchronize() }
         }
         guard let dir = files.first?.deletingLastPathComponent() else { return }
         let fd = Darwin.open(dir.path, O_RDONLY)
         if fd >= 0 {
-            _ = Darwin.fsync(fd)
+            if fcntl(fd, F_FULLFSYNC) != 0 { _ = Darwin.fsync(fd) }
             _ = Darwin.close(fd)
         }
     }
