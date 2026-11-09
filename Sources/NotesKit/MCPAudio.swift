@@ -24,7 +24,10 @@ extension MCPServer {
     func pendingRecordings() -> [SpoolRecording] {
         spool.recordings().filter { recording in
             guard let note = recording.note else { return true }
-            return !FileManager.default.fileExists(atPath: store.root.appendingPathComponent(note).path)
+            // Relative to Conversations; an older entry's absolute path keeps its last two parts (day/name), as the
+            // processor reads it.
+            let relative = note.split(separator: "/").suffix(2).joined(separator: "/")
+            return !FileManager.default.fileExists(atPath: store.root.appendingPathComponent(relative).path)
         }
     }
 

@@ -151,7 +151,7 @@ public actor SpoolTranscriber {
             do {
                 done[job] = try await transcribe(job)
             } catch {
-                // No models, or the file went: say why, with whatever was done.
+                // No models, or the file went mid-read: say why.
                 leftover = []
                 if let engineError = error as? EngineError { return SpoolSlice(words: [], from: from, to: to, doneFrom: to, duration: duration, error: engineError.description) }
                 Log.note("spool transcriber: a piece couldn't be transcribed: \(Log.describe(error))")
