@@ -17,6 +17,9 @@ echo "==> assembling $APP"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Helpers" "$APP/Contents/Resources" "$APP/Contents/Library/LaunchAgents"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+# The build number is the time (UTC, YYYYMMDDHHMM), as in `make release`: Sparkle compares it, so a copy installed with
+# `make install` must never look older than a published release that has less in it.
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(date -u +%Y%m%d%H%M)" "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/"  # drawn in design/icon (render.swift)
 cp Resources/com.dinilb.sona.keepalive.plist "$APP/Contents/Library/LaunchAgents/"
 cp "$BIN/SonaApp" "$APP/Contents/MacOS/Sona"
