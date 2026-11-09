@@ -25,7 +25,10 @@ let package = Package(
             url: "https://github.com/FluidInference/FluidAudio.git",
             revision: "1b0ed50d686873128a4129b3510ce3914c849bab",
             traits: ["Diarizer"]
-        )
+        ),
+        // Sparkle: the Mac app's updater (signed updates from the appcast on the project site). The one dependency
+        // that touches the network besides the model download, and only after the user agrees to update checks.
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1"),
     ],
     targets: [
         // Plain files: settings, paths, writing and reading notes, the MCP server. No dependencies (just the system SQLite),
@@ -51,10 +54,14 @@ let package = Package(
         // The app: menu bar, window, live transcript, dictation, always-on notes.
         .executableTarget(
             name: "SonaApp",
-            dependencies: ["NotesKit", "SonaEngine", "LiveCore"],
+            dependencies: ["NotesKit", "SonaEngine", "LiveCore", .product(name: "Sparkle", package: "Sparkle")],
             // FoundationModels (MacTitles) is macOS 26 and later: weak-linked, so the app still launches on macOS 14
             // and MacTitles does nothing there. Check with `otool -l`: LC_LOAD_WEAK_DYLIB.
-            linkerSettings: [.unsafeFlags(["-Xlinker", "-weak_framework", "-Xlinker", "FoundationModels"])]
+            // The rpath finds Sparkle.framework where scripts/build.sh puts it, in Contents/Frameworks.
+            linkerSettings: [.unsafeFlags([
+                "-Xlinker", "-weak_framework", "-Xlinker", "FoundationModels",
+                "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
+            ])]
         ),
         // Live transcript: Parakeet Unified streaming, the mic at hardware-buffer size and the rules for keeping
         // it open, speakers, latency measurement.

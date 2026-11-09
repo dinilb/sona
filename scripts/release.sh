@@ -6,7 +6,8 @@
 #   - a "Developer ID Application" certificate in the keychain (the first one is used; SIGN_IDENTITY picks another)
 #   - an App Store Connect API key for notarization: ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_PATH (the .p8 file),
 #     set in the environment or in ~/.appstoreconnect/config.env (ASC_CONFIG points elsewhere), kept outside the repo
-# Without them, `make` still builds an ad-hoc signed app. No auto-update: a release is just this DMG.
+# Without them, `make` still builds an ad-hoc signed app. Then scripts/publish-mac.sh puts the DMG on GitHub Releases and
+# adds it to the Sparkle appcast, so installed copies update themselves.
 set -euo pipefail
 cd "${0:A:h}/.."
 STEP=setup
@@ -43,6 +44,11 @@ ditto build/Sona.app "$APP"
 step "sign (Developer ID, hardened runtime)"
 sign() { codesign --force --timestamp --options runtime --sign "$IDENTITY" "$@"; }
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD" "$APP/Contents/Info.plist"
+# Inside out, as in scripts/build.sh: Sparkle's helper and updater app, the framework, then Sona's own code.
+SPARKLE_FW="$APP/Contents/Frameworks/Sparkle.framework"
+sign "$SPARKLE_FW/Versions/B/Autoupdate"
+sign "$SPARKLE_FW/Versions/B/Updater.app"
+sign "$SPARKLE_FW"
 sign --identifier com.dinilb.sona.mcp "$APP/Contents/MacOS/sona-mcp"
 # The CLI is signed on its own only if it's its own binary (a link to the app's binary is covered by the app).
 CLI=$APP/Contents/Helpers/sona

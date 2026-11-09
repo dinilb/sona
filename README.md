@@ -8,7 +8,7 @@ Sona listens on your Mac and writes down what it hears:
 - **Always-on notes**, if you want them: every conversation becomes a markdown note with who said what, in a folder you own.
 - **For your AI**: Claude, Cursor, Codex or any MCP client can read the notes, the live transcript and the conversation still going on, if you let it.
 
-Everything runs on your Mac: no account, no cloud, no API keys, no analytics. The only network use is downloading the speech models once.
+Everything runs on your Mac: no account, no cloud, no API keys, no analytics. The only network use is downloading the speech models once and, if you allow it, checking for updates.
 
 Sona is open source (MIT), for Apple Silicon Macs, in English only. A companion iPhone and Apple Watch app is in [`ios/`](ios/README.md).
 
@@ -28,7 +28,7 @@ Sona is open source (MIT), for Apple Silicon Macs, in English only. A companion 
 
 ## Install
 
-If [Releases](../../releases) has a DMG, download it, open it and drag Sona to Applications. Releases are signed and notarized.
+If [Releases](../../releases) has a DMG, download it, open it and drag Sona to Applications. Releases are signed and notarized. Sona keeps itself up to date with [Sparkle](https://sparkle-project.org): on its second launch it asks whether to check for updates automatically, and Sona > Check for Updates... checks any time.
 
 Otherwise build it (needs Xcode 26):
 
@@ -210,7 +210,7 @@ sona status                          # settings, models, spool, and whether the 
 
 ## Privacy
 
-- Nothing leaves your Mac: no server, account, analytics, crash reporting or auto-update. The only network use is downloading the models from Hugging Face, once. (The iPhone app also looks up street names with Apple's map service, sending coordinates only, and only with location allowed; see [ios/README.md](ios/README.md).)
+- Nothing of yours leaves your Mac: no server, account, analytics or crash reporting. The network is used to download the models from Hugging Face, once, and, if you allow it, to check for updates (Sparkle reads a small file from the project site, dinilb.github.io; updates download from GitHub). (The iPhone app also looks up street names with Apple's map service, sending coordinates only, and only with location allowed; see [ios/README.md](ios/README.md).)
 - Notes and their folders are readable only by you (files 0600, folders 0700), and so is the support folder with everything in it (settings, the log, the spool, the search index). The log never contains what was said.
 - The app is signed with the hardened runtime, so no other program can load code into it and use its microphone, Accessibility or System Audio Recording permission.
 - If settings.json can't be read, always-on, AI access and Mac audio are off and the iPhone's notes aren't copied in until you change a setting (the file is left as it is; `sona import-phone` then needs `--notes-dir`). A settings file without the AI access switch reads as off. Turning AI access off also deletes the search index.

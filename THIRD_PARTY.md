@@ -4,6 +4,11 @@ Sona's own code is MIT licensed. It uses the following, with thanks.
 
 ## Code
 
+**Sparkle**: the Mac app's updater.
+- https://github.com/sparkle-project/Sparkle
+- MIT License
+- Linked as a Swift package, pinned to 2.10.1. Its framework is embedded in the app (`Contents/Frameworks`) without its XPC services, which only sandboxed apps need. Not modified. Its licence text ships inside the app bundle in `Contents/Resources/Licenses/Sparkle-LICENSE.txt`.
+
 **FluidAudio**: Swift SDK for on-device speech on Apple Silicon (ASR, VAD, diarization on CoreML).
 - https://github.com/FluidInference/FluidAudio, by FluidInference
 - Apache License 2.0

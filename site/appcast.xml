@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sparkle's update feed for Sona for Mac. scripts/publish-mac.sh adds an item at the top for each release. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Sona for Mac</title>
+    <link>https://dinilb.github.io/sona/appcast.xml</link>
+    <description>Updates to Sona for Mac</description>
+    <language>en</language>
+    <item>
+      <title>Sona 0.2.0</title>
+      <pubDate>Mon, 09 Nov 2026 19:48:22 +1000</pubDate>
+      <sparkle:version>202611090944</sparkle:version>
+      <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/dinilb/sona/releases/tag/mac-0.2.0</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/dinilb/sona/releases/download/mac-0.2.0/Sona-0.2.0.dmg" type="application/octet-stream" sparkle:edSignature="k3+W+weBsD7ikHJkup3krMBRXqo37GJ6lgo9RSnVgi++/5YiGOiamALdWJ0aX080yrc89YrXnZ2QZLfSlojwCw==" length="9193551"/>
+    </item>
+  </channel>
+</rss>
