@@ -233,6 +233,45 @@ final class NotesKitTests: XCTestCase {
         if SearchIndex.fts5Available { XCTAssertEqual(index.search("ship", speaker: "jose").total, 1) }
     }
 
+    /// A symlink in the notes folder (a day folder, or a note) could point at any file on the Mac: nothing is listed,
+    /// read, searched, renamed or deleted through one (the MCP server serves these). The folder's own real path is fine.
+    func testSymlinksInTheNotesFolderAreNeverFollowed() throws {
+        let outside = FileManager.default.temporaryDirectory.appendingPathComponent("sona-outside-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: outside) }
+        let t0 = Date(timeIntervalSince1970: 1_790_000_000)
+        let mine = try NoteWriter.write(sample(start: t0.addingTimeInterval(-3 * 86_400)), to: root)
+        let theirs = try NoteWriter.write(sample(start: t0), to: outside)
+        chmod(theirs.path, 0o644)
+        let before = try Data(contentsOf: theirs)
+        let day = theirs.deletingLastPathComponent().lastPathComponent
+        try FileManager.default.createSymbolicLink(at: root.appendingPathComponent(day), withDestinationURL: theirs.deletingLastPathComponent())
+        let linked = mine.deletingLastPathComponent().appendingPathComponent("23-59 Linked.md")
+        try FileManager.default.createSymbolicLink(at: linked, withDestinationURL: theirs)
+
+        let store = NoteStore(root: root)
+        let id = NoteStore.relativeID(mine, root: root)
+        XCTAssertEqual(store.days(), [mine.deletingLastPathComponent().lastPathComponent])
+        XCTAssertEqual(store.conversations().map(\.id), [id])
+        XCTAssertEqual(store.names().map(\.id), [id])
+        let through = day + "/" + theirs.deletingPathExtension().lastPathComponent
+        for bad in [through, String(through.prefix(16)), root.path + "/" + through + ".md", "\(mine.deletingLastPathComponent().lastPathComponent)/23-59 Linked", linked.path] {
+            XCTAssertThrowsError(try store.read(bad), bad)
+            XCTAssertThrowsError(try store.renameSpeaker(in: bad, from: "Speaker 1", to: "Ana"), bad)
+        }
+        XCTAssertEqual(store.scanSearch("pricing").total, 1)
+        let index = NoteStore(root: root, indexURL: root.appendingPathComponent("index.sqlite"))
+        if SearchIndex.fts5Available { XCTAssertEqual(index.search("pricing").total, 1) }
+        XCTAssertEqual(store.forget(from: t0.addingTimeInterval(-60)), NoteStore.Forgotten())
+        XCTAssertEqual(try Data(contentsOf: theirs), before, "the file outside is as it was")
+        XCTAssertEqual(mode(theirs.path), 0o644)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: theirs.deletingPathExtension().appendingPathExtension("json").path))
+
+        // The notes folder by its real path (/private/var for the temp folder's /var).
+        let real = try XCTUnwrap(realpath(root.path, nil).map { p in defer { free(p) }; return String(cString: p) })
+        XCTAssertNotEqual(real, root.standardizedFileURL.path, "the temp folder is reached through a symlink")
+        XCTAssertEqual(try store.read(real + "/" + id + ".md").id, id)
+    }
+
     /// Big replies are cut at the character budget and say how to continue.
     func testMCPRepliesAreCapped() throws {
         let day = root.appendingPathComponent("2026-10-27")

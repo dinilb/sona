@@ -135,7 +135,8 @@ public struct NoteStore {
         index?.onError = { Log.note($0) }
     }
 
-    /// Day folders (`YYYY-MM-DD`) between `from` and `to` inclusive, oldest first.
+    /// Day folders (`YYYY-MM-DD`) between `from` and `to` inclusive, oldest first. Real folders only: a symlinked one
+    /// could point anywhere on the Mac, and its files would be read, rewritten and deleted there.
     public func days(from: String? = nil, to: String? = nil) -> [String] {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: root.path)) ?? []
         return names.filter { name in
@@ -143,7 +144,7 @@ public struct NoteStore {
             else { return false }
             if let from, name < from { return false }
             if let to, name > to { return false }
-            return true
+            return NoteWriter.isRealDirectory(root.path + "/" + name)
         }.sorted()
     }
 
@@ -233,18 +234,15 @@ public struct NoteStore {
         var key = id.trimmingCharacters(in: .whitespacesAndNewlines)
         // Only notes inside the Conversations folder, never any other file on the Mac.
         if key.hasPrefix("/") || key.hasPrefix("~") {
-            let url = URL(fileURLWithPath: (key as NSString).expandingTildeInPath).standardizedFileURL
-            if url.pathExtension == "md", url.path.hasPrefix(root.standardizedFileURL.path + "/"),
-                FileManager.default.fileExists(atPath: url.path)
-            {
-                return url
+            let path = URL(fileURLWithPath: (key as NSString).expandingTildeInPath).standardizedFileURL.path
+            guard path.hasSuffix(".md"), let relative = relativeToRoot(path), let url = plainNote(relative) else {
+                throw NoteStoreError.notFound(id)
             }
-            throw NoteStoreError.notFound(id)
+            return url
         }
         guard !key.contains("..") else { throw NoteStoreError.notFound(id) }
         if key.hasSuffix(".md") { key = String(key.dropLast(3)) }
-        let exact = root.appendingPathComponent(key + ".md")
-        if FileManager.default.fileExists(atPath: exact.path) { return exact }
+        if let exact = plainNote(key + ".md") { return exact }
         if strict, key.range(of: #"^\d{4}-\d{2}-\d{2}/\d{2}-\d{2}$"#, options: .regularExpression) == nil {
             throw NoteStoreError.notFound(id)
         }
@@ -256,14 +254,47 @@ public struct NoteStore {
             let dir = root.appendingPathComponent(d, isDirectory: true)
             for file in (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? [] where file.hasSuffix(".md") {
                 let candidate = "\(d)/\(file.dropLast(3))"
-                if candidate.hasPrefix(key) || (!strict && candidate.localizedCaseInsensitiveContains(key)) {
-                    matches.append(candidate)
-                }
+                guard candidate.hasPrefix(key) || (!strict && candidate.localizedCaseInsensitiveContains(key)) else { continue }
+                if Self.isRegularFile(dir.path + "/" + file) { matches.append(candidate) }
             }
         }
         if matches.count == 1 { return root.appendingPathComponent(matches[0] + ".md") }
         if matches.isEmpty { throw NoteStoreError.notFound(id) }
         throw NoteStoreError.ambiguous(id, matches.sorted())
+    }
+
+    /// `path` (absolute, standardized) from the root on, with the root as it is spelled or as its real path (the
+    /// notes folder itself may be reached through a symlink, like `/tmp`). Nil outside it.
+    private func relativeToRoot(_ path: String) -> String? {
+        let spelled = root.standardizedFileURL.path
+        var real: String?
+        if let p = realpath(spelled, nil) {
+            real = String(cString: p)
+            free(p)
+        }
+        for base in [spelled, real].compactMap({ $0 }) where path.hasPrefix(base + "/") {
+            return String(path.dropFirst(base.count + 1))
+        }
+        return nil
+    }
+
+    /// The note at `relative` under the root, if every folder on the way is a real one and the note a regular file.
+    /// A symlink anywhere below the root could point at any file on the Mac, to be read or written over.
+    private func plainNote(_ relative: String) -> URL? {
+        let parts = relative.split(separator: "/", omittingEmptySubsequences: false)
+        guard !parts.contains(where: { $0.isEmpty || $0 == "." || $0 == ".." }) else { return nil }
+        var path = root.path
+        for (i, part) in parts.enumerated() {
+            path += "/" + String(part)
+            var st = stat()
+            guard lstat(path, &st) == 0, (st.st_mode & S_IFMT) == (i == parts.count - 1 ? S_IFREG : S_IFDIR) else { return nil }
+        }
+        return root.appendingPathComponent(relative)
+    }
+
+    static func isRegularFile(_ path: String) -> Bool {
+        var st = stat()
+        return lstat(path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFREG
     }
 
     public func read(_ id: String) throws -> ConversationNote {

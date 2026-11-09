@@ -334,7 +334,8 @@ public final class SearchIndex {
         let rootPath = store.root.standardizedFileURL.path
         for day in Self.entries(rootPath) where Self.isDay(day) {
             let dirPath = rootPath + "/" + day
-            guard let dir = opendir(dirPath) else { continue }
+            // Like `NoteStore.days`: a symlinked day folder could point anywhere on the Mac.
+            guard NoteWriter.isRealDirectory(dirPath), let dir = opendir(dirPath) else { continue }
             defer { closedir(dir) }
             let fd = dirfd(dir)
             while let entry = readdir(dir) {
