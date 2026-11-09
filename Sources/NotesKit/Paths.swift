@@ -92,6 +92,14 @@ public enum Log {
     }
     private static let hook = OSAllocatedUnfairLock<(@Sendable () -> Void)?>(initialState: nil)
 
+    /// A folder for the log, with the home folder as `~`: its name is often the user's, and log lines get pasted.
+    public static func path(_ url: URL) -> String {
+        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
+        let path = url.standardizedFileURL.path
+        if path == home { return "~" }
+        return path.hasPrefix(home + "/") ? "~" + String(path.dropFirst(home.count)) : path
+    }
+
     /// A conversation in the log: its day and start minute ("2026-10-29/14-03"), the time part of its note id.
     public static func ref(_ startedAt: Date) -> String {
         NoteWriter.dayString(startedAt) + "/" + NoteWriter.timeString(startedAt, "HH-mm")

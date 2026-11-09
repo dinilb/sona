@@ -183,7 +183,8 @@ final class MicDriver: @unchecked Sendable {
             try opened.start()
             source = opened
             health.opened(now: hostNow())
-            let name = (opened as? MicSource)?.device?.label ?? file.map { "the file \($0.lastPathComponent)" } ?? "?"
+            // Its kind, not its name (often the owner's).
+            let name = (opened as? MicSource)?.device.map { "\($0.label) mic" } ?? file.map { "the file \($0.lastPathComponent)" } ?? "?"
             Log.note("mic opened: \(name)")
             // Say "running" as soon as its first audio is in, not at the next once-a-second tick.
             tickWhenDue(after: 0.25)
@@ -191,7 +192,8 @@ final class MicDriver: @unchecked Sendable {
             lock.withLock { current = nil }
             let why = Self.describe(error)
             health.openFailed(why, now: hostNow())
-            Log.note("mic didn't open: \(why)")
+            // By code: what the window shows can name the mic ("Couldn't open Someone's AirPods").
+            Log.note("mic didn't open: \(Log.describe(error))")
             tickWhenDue()
         }
     }

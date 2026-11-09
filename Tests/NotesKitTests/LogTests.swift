@@ -82,6 +82,15 @@ final class LogTests: XCTestCase {
         XCTAssertEqual(seen.all.count, 1)
         XCTAssertTrue(seen.all[0].hasSuffix("recording 2026-11-08/15-45 saved: 423.2 s\n"))
     }
+
+    /// A folder in the log has the home folder as `~`, so the user's name (often the home folder's) stays out.
+    func testFoldersInTheLogHideTheHomeFolder() {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        XCTAssertEqual(Log.path(home.appendingPathComponent("Library/Application Support/Sona")), "~/Library/Application Support/Sona")
+        XCTAssertEqual(Log.path(home), "~")
+        XCTAssertEqual(Log.path(URL(fileURLWithPath: "/tmp/sona-test")), "/tmp/sona-test")
+        XCTAssertEqual(Log.path(URL(fileURLWithPath: home.path + "x/Sona")), home.path + "x/Sona", "a folder only next to it")
+    }
 }
 
 /// What the hook saw, from any thread.

@@ -25,8 +25,18 @@ public struct InputDevice: Equatable, Sendable {
     public var isBuiltIn: Bool { transport == kAudioDeviceTransportTypeBuiltIn }
     /// Opening a Bluetooth mic switches AirPods and other headsets into call mode (HFP), which wrecks their audio.
     public var isBluetooth: Bool { transport == kAudioDeviceTransportTypeBluetooth || transport == kAudioDeviceTransportTypeBluetoothLE }
-    /// For logs: `"MacBook Air Microphone" (built-in)`.
-    public var label: String { "\"\(name)\"" + (isBuiltIn ? " (built-in)" : isBluetooth ? " (Bluetooth)" : "") }
+    /// For logs: what kind of device it is ("built-in", "Bluetooth", "USB"...), never its name, which is often the
+    /// owner's ("Someone's AirPods"), and log lines get pasted.
+    public var label: String {
+        if isBuiltIn { return "built-in" }
+        if isBluetooth { return "Bluetooth" }
+        switch transport {
+        case kAudioDeviceTransportTypeUSB: return "USB"
+        case kAudioDeviceTransportTypeVirtual: return "virtual"
+        case kAudioDeviceTransportTypeAggregate: return "aggregate"
+        default: return "other"
+        }
+    }
 }
 
 /// Lists input devices and picks which one to record from, so a Bluetooth headset is never opened by accident.

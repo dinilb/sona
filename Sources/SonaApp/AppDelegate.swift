@@ -39,7 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         Paths.tightenSupport()  // folders and files older versions left readable by other accounts
         Models.goOffline()  // only model downloads may ever use the network
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
-        Log.note("launched \(version)\(atLogin ? " at login" : "") (support: \(Paths.support.path))")
+        Log.note("launched \(version)\(atLogin ? " at login" : "") (support: \(Log.path(Paths.support)))")
         LoginItem.removeOldAgent()
         watchSignals()
         model = AppModel()

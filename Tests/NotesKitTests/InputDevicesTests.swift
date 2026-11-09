@@ -58,8 +58,12 @@ final class InputDevicesTests: XCTestCase {
         XCTAssertTrue(airPodsLE.isBluetooth)
         XCTAssertFalse(builtIn.isBluetooth)
         XCTAssertTrue(builtIn.isBuiltIn)
-        XCTAssertEqual(airPodsLE.label, "\"Beats\" (Bluetooth)")
-        XCTAssertEqual(builtIn.label, "\"MacBook Air Microphone\" (built-in)")
+        // The log's label never has the name (often the owner's: "Someone's AirPods").
+        XCTAssertEqual(airPodsLE.label, "Bluetooth")
+        XCTAssertEqual(airPods.label, "Bluetooth")
+        XCTAssertEqual(builtIn.label, "built-in")
+        XCTAssertEqual(usb.label, "USB")
+        XCTAssertEqual(blackHole.label, "virtual")
     }
 
     func testOldSettingsFileDecodesWithAutomaticMic() throws {

@@ -120,7 +120,7 @@ enum Headless {
         Paths.tightenSupport()
         Models.goOffline()
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
-        Log.note("launched \(version) headless (test run, support: \(Paths.support.path))")
+        Log.note("launched \(version) headless (test run, support: \(Log.path(Paths.support)))")
         let model = AppModel()
         model.start()
         var sources: [DispatchSourceSignal] = []

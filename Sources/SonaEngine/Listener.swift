@@ -219,7 +219,7 @@ public final class Listener {
             c.speechSamples = piece.count
             if !macPreRoll.isEmpty {
                 do { try appendMac(macPreRoll, to: c, at: preRoll.count - macPreRoll.count) } catch {
-                    Log.note("couldn't start the Mac audio WAV: \(error)")
+                    Log.note("couldn't start the Mac audio WAV: \(Log.describe(error))")
                 }
                 if macSpeaking { c.macSpeechSamples = piece.count }
             }
@@ -235,7 +235,7 @@ public final class Listener {
         try c.file.append(piece)
         if let macPiece {
             do { try appendMac(macPiece, to: c, at: at) } catch {
-                if c.macFile == nil || c.syncs == 0 { Log.note("couldn't write the Mac audio: \(error)") }
+                if c.macFile == nil || c.syncs == 0 { Log.note("couldn't write the Mac audio: \(Log.describe(error))") }
             }
         }
         if let probe = playbackProbe, c.chunks % 4 == 0 { c.lastSample = probe() }  // ~1 s
@@ -262,7 +262,7 @@ public final class Listener {
             c.entry.mac?.speechSeconds = Double(c.macSpeechSamples) / Double(rate)
             let t0 = Date()
             spool.save(c.entry, durable: true)
-            do { try c.file.checkpoint() } catch { if c.syncs == 0 { Log.note("checkpoint sync failed: \(error)") } }
+            do { try c.file.checkpoint() } catch { if c.syncs == 0 { Log.note("checkpoint sync failed: \(Log.describe(error))") } }
             try? c.macFile?.checkpoint()
             let took = Date().timeIntervalSince(t0)
             c.syncs += 1
@@ -301,10 +301,10 @@ public final class Listener {
             try c.file.finish(truncatingTo: end)
         } catch {
             // Still hand it over: the processor repairs the header. Never strand a conversation.
-            Log.note("couldn't finish the conversation WAV cleanly: \(error)")
+            Log.note("couldn't finish the conversation WAV cleanly: \(Log.describe(error))")
         }
         if let mac = c.macFile, let offset = c.entry.mac?.offset {
-            do { try mac.finish(truncatingTo: max(0, end - offset)) } catch { Log.note("couldn't finish the Mac audio WAV cleanly: \(error)") }
+            do { try mac.finish(truncatingTo: max(0, end - offset)) } catch { Log.note("couldn't finish the Mac audio WAV cleanly: \(Log.describe(error))") }
             c.entry.mac?.speechSeconds = min(Double(c.macSpeechSamples) / Double(rate), speech)
         }
         c.entry.speechEnd = end
