@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.dinilb.sona</string>
+	<key>CFBundleName</key>
+	<string>Sona</string>
+	<key>CFBundleDisplayName</key>
+	<string>Sona</string>
+	<key>CFBundleExecutable</key>
+	<string>Sona</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Sona listens so it can show what's said, take dictation and, if you leave it on, keep notes of your conversations. Audio is transcribed on this Mac and never leaves it.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>If you turn on "Hear this Mac's audio too", what this Mac plays (a video, a call) is transcribed as its own track, labelled Mac audio, only while something plays. It's transcribed on this Mac and never leaves it.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>MIT License</string>
+</dict>
+</plist>

@@ -1,0 +1,120 @@
+<!doctype html>
+<!-- The link-preview image, site/img/og.png (1200 x 630), drawn like the home page's first screen. Render it with
+     headless Chrome from the repo root (any Chrome works; the path is the macOS one):
+     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars \
+       --force-prefers-reduced-motion --screenshot=site/img/og.png --window-size=1200,630 "file://$PWD/design/site/og.html"
+     The wave's bars are pasted from design/site/wave.py. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #fff; color: #1d1d1f; }
+  body { position: relative; font: 400 22px/1.4 -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .copy { position: absolute; left: 80px; top: 72px; width: 640px; }
+  h1 { margin: 0 0 20px; font-size: 136px; font-weight: 600; line-height: 0.95; }
+  .lede { margin: 0 0 16px; font-size: 44px; font-weight: 600; line-height: 1.12; text-wrap: balance; }
+  .sub { margin: 0; color: #6e6e73; }
+  .wave { position: absolute; left: 80px; right: 260px; bottom: 56px; height: 110px; width: auto; color: #aeaeb2; }
+  .wave rect { fill: currentColor; }
+  .device { --w: 330px; position: absolute; right: 88px; top: 64px; width: var(--w); margin: 0; padding: calc(var(--w) * 0.03); border-radius: calc(var(--w) * 0.165); background: #1d1d1f; }
+  .device img { display: block; width: 100%; height: auto; border-radius: calc(var(--w) * 0.135); }
+  .device::before { content: ""; position: absolute; top: calc(var(--w) * 0.056); left: 50%; width: calc(var(--w) * 0.29); height: calc(var(--w) * 0.085); margin-left: calc(var(--w) * -0.145); border-radius: 999px; background: #000; }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <h1>Sona</h1>
+    <p class="lede">The notetaker that runs on your own devices.</p>
+    <p class="sub">Free and open source, for iPhone, Apple Watch and Mac.</p>
+  </div>
+  <svg class="wave" viewBox="0 0 1200 160" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+    <rect x="4" y="77" width="6" height="6" rx="3" style="--i:0"/>
+    <rect x="18" y="73" width="6" height="14" rx="3" style="--i:1"/>
+    <rect x="32" y="56" width="6" height="48" rx="3" style="--i:2"/>
+    <rect x="46" y="51" width="6" height="58" rx="3" style="--i:3"/>
+    <rect x="60" y="25" width="6" height="110" rx="3" style="--i:4"/>
+    <rect x="74" y="30" width="6" height="100" rx="3" style="--i:5"/>
+    <rect x="88" y="44" width="6" height="72" rx="3" style="--i:6"/>
+    <rect x="102" y="38" width="6" height="84" rx="3" style="--i:7"/>
+    <rect x="116" y="65" width="6" height="30" rx="3" style="--i:8"/>
+    <rect x="130" y="59" width="6" height="42" rx="3" style="--i:9"/>
+    <rect x="144" y="54" width="6" height="52" rx="3" style="--i:10"/>
+    <rect x="158" y="45" width="6" height="70" rx="3" style="--i:11"/>
+    <rect x="172" y="29" width="6" height="102" rx="3" style="--i:12"/>
+    <rect x="186" y="12" width="6" height="136" rx="3" style="--i:13"/>
+    <rect x="200" y="40" width="6" height="80" rx="3" style="--i:14"/>
+    <rect x="214" y="41" width="6" height="78" rx="3" style="--i:15"/>
+    <rect x="228" y="39" width="6" height="82" rx="3" style="--i:16"/>
+    <rect x="242" y="51" width="6" height="58" rx="3" style="--i:17"/>
+    <rect x="256" y="69" width="6" height="22" rx="3" style="--i:18"/>
+    <rect x="270" y="70" width="6" height="20" rx="3" style="--i:19"/>
+    <rect x="284" y="51" width="6" height="58" rx="3" style="--i:20"/>
+    <rect x="298" y="55" width="6" height="50" rx="3" style="--i:21"/>
+    <rect x="312" y="18" width="6" height="124" rx="3" style="--i:22"/>
+    <rect x="326" y="34" width="6" height="92" rx="3" style="--i:23"/>
+    <rect x="340" y="39" width="6" height="82" rx="3" style="--i:24"/>
+    <rect x="354" y="41" width="6" height="78" rx="3" style="--i:25"/>
+    <rect x="368" y="38" width="6" height="84" rx="3" style="--i:26"/>
+    <rect x="382" y="35" width="6" height="90" rx="3" style="--i:27"/>
+    <rect x="396" y="62" width="6" height="36" rx="3" style="--i:28"/>
+    <rect x="410" y="57" width="6" height="46" rx="3" style="--i:29"/>
+    <rect x="424" y="26" width="6" height="108" rx="3" style="--i:30"/>
+    <rect x="438" y="30" width="6" height="100" rx="3" style="--i:31"/>
+    <rect x="452" y="29" width="6" height="102" rx="3" style="--i:32"/>
+    <rect x="466" y="64" width="6" height="32" rx="3" style="--i:33"/>
+    <rect x="480" y="75" width="6" height="10" rx="3" style="--i:34"/>
+    <rect x="494" y="70" width="6" height="20" rx="3" style="--i:35"/>
+    <rect x="508" y="55" width="6" height="50" rx="3" style="--i:36"/>
+    <rect x="522" y="47" width="6" height="66" rx="3" style="--i:37"/>
+    <rect x="536" y="41" width="6" height="78" rx="3" style="--i:38"/>
+    <rect x="550" y="25" width="6" height="110" rx="3" style="--i:39"/>
+    <rect x="564" y="27" width="6" height="106" rx="3" style="--i:40"/>
+    <rect x="578" y="33" width="6" height="94" rx="3" style="--i:41"/>
+    <rect x="592" y="14" width="6" height="132" rx="3" style="--i:42"/>
+    <rect x="606" y="21" width="6" height="118" rx="3" style="--i:43"/>
+    <rect x="620" y="43" width="6" height="74" rx="3" style="--i:44"/>
+    <rect x="634" y="44" width="6" height="72" rx="3" style="--i:45"/>
+    <rect x="648" y="57" width="6" height="46" rx="3" style="--i:46"/>
+    <rect x="662" y="65" width="6" height="30" rx="3" style="--i:47"/>
+    <rect x="676" y="73" width="6" height="14" rx="3" style="--i:48"/>
+    <rect x="690" y="73" width="6" height="14" rx="3" style="--i:49"/>
+    <rect x="704" y="51" width="6" height="58" rx="3" style="--i:50"/>
+    <rect x="718" y="49" width="6" height="62" rx="3" style="--i:51"/>
+    <rect x="732" y="30" width="6" height="100" rx="3" style="--i:52"/>
+    <rect x="746" y="15" width="6" height="130" rx="3" style="--i:53"/>
+    <rect x="760" y="40" width="6" height="80" rx="3" style="--i:54"/>
+    <rect x="774" y="39" width="6" height="82" rx="3" style="--i:55"/>
+    <rect x="788" y="65" width="6" height="30" rx="3" style="--i:56"/>
+    <rect x="802" y="55" width="6" height="50" rx="3" style="--i:57"/>
+    <rect x="816" y="36" width="6" height="88" rx="3" style="--i:58"/>
+    <rect x="830" y="28" width="6" height="104" rx="3" style="--i:59"/>
+    <rect x="844" y="11" width="6" height="138" rx="3" style="--i:60"/>
+    <rect x="858" y="32" width="6" height="96" rx="3" style="--i:61"/>
+    <rect x="872" y="18" width="6" height="124" rx="3" style="--i:62"/>
+    <rect x="886" y="28" width="6" height="104" rx="3" style="--i:63"/>
+    <rect x="900" y="41" width="6" height="78" rx="3" style="--i:64"/>
+    <rect x="914" y="58" width="6" height="44" rx="3" style="--i:65"/>
+    <rect x="928" y="68" width="6" height="24" rx="3" style="--i:66"/>
+    <rect x="942" y="75" width="6" height="10" rx="3" style="--i:67"/>
+    <rect x="956" y="70" width="6" height="20" rx="3" style="--i:68"/>
+    <rect x="970" y="55" width="6" height="50" rx="3" style="--i:69"/>
+    <rect x="984" y="54" width="6" height="52" rx="3" style="--i:70"/>
+    <rect x="998" y="24" width="6" height="112" rx="3" style="--i:71"/>
+    <rect x="1012" y="20" width="6" height="120" rx="3" style="--i:72"/>
+    <rect x="1026" y="5" width="6" height="150" rx="3" style="--i:73"/>
+    <rect x="1040" y="13" width="6" height="134" rx="3" style="--i:74"/>
+    <rect x="1054" y="38" width="6" height="84" rx="3" style="--i:75"/>
+    <rect x="1068" y="46" width="6" height="68" rx="3" style="--i:76"/>
+    <rect x="1082" y="55" width="6" height="50" rx="3" style="--i:77"/>
+    <rect x="1096" y="72" width="6" height="16" rx="3" style="--i:78"/>
+    <rect x="1110" y="58" width="6" height="44" rx="3" style="--i:79"/>
+    <rect x="1124" y="43" width="6" height="74" rx="3" style="--i:80"/>
+    <rect x="1138" y="40" width="6" height="80" rx="3" style="--i:81"/>
+    <rect x="1152" y="46" width="6" height="68" rx="3" style="--i:82"/>
+    <rect x="1166" y="54" width="6" height="52" rx="3" style="--i:83"/>
+    <rect x="1180" y="76" width="6" height="8" rx="3" style="--i:84"/>
+    <rect x="1194" y="77" width="6" height="6" rx="3" style="--i:85"/>
+  </svg>
+  <figure class="device"><img src="../../site/img/screen-home.png" alt=""></figure>
+</body>
+</html>

@@ -1,0 +1,241 @@
+/* Sona's website: one stylesheet, no build step, nothing loaded from anywhere else.
+   Monochrome like the app: ink, paper and greys, swapped in dark mode. Red only where something records. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #fff;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
+  --wave: #aeaeb2;
+  --bezel: #1d1d1f;
+  --bezel-edge: #1d1d1f;
+  --red: #ff3b30;
+  --wrap: 1120px;
+  --pad: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --ink: #f5f5f7;
+    --muted: #a1a1a6;
+    --line: #38383a;
+    --wave: #636366;
+    --bezel: #1c1c1e;
+    --bezel-edge: #3a3a3c;
+    --red: #ff453a;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 19px/1.5 -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 4px; }
+
+p { margin: 0 0 16px; }
+
+h1, h2 { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
+
+strong { font-weight: 600; }
+
+.muted { color: var(--muted); }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--pad); }
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: var(--pad); top: 12px; }
+
+/* The top bar and the footer */
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+
+.brand { display: inline-flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600; text-decoration: none; }
+.brand svg { width: 20px; height: 20px; }
+
+.links { display: flex; gap: 24px; font-size: 15px; }
+.links a { color: var(--muted); text-decoration: none; }
+.links a:hover, .links a[aria-current="page"] { color: var(--ink); }
+
+.foot { margin-top: 48px; }
+.foot .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; padding-top: 32px; padding-bottom: 48px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
+.foot p { margin: 0; }
+
+/* The voice wave: a row of bars that talk quietly. Still for anyone who asks for less motion. */
+
+.wave { color: var(--ink); }
+.wave rect {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: talk 1.9s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -0.13s);
+}
+.wave rect:nth-child(3n) { animation-duration: 2.4s; }
+.wave rect:nth-child(3n + 1) { animation-duration: 1.5s; }
+
+@keyframes talk {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave rect { animation: none; }
+}
+
+/* A phone: the screenshot in a plain black frame with a Dynamic Island. Sizes follow --w. */
+
+.device {
+  --w: 320px;
+  position: relative;
+  flex: none;
+  width: var(--w);
+  margin: 0;
+  padding: calc(var(--w) * 0.03);
+  border: 1px solid var(--bezel-edge);
+  border-radius: calc(var(--w) * 0.165);
+  background: var(--bezel);
+}
+.device img { width: 100%; height: auto; border-radius: calc(var(--w) * 0.135); }
+.device::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--w) * 0.056);
+  left: 50%;
+  width: calc(var(--w) * 0.29);
+  height: calc(var(--w) * 0.085);
+  margin-left: calc(var(--w) * -0.145);
+  border-radius: 999px;
+  background: #000;
+}
+
+/* The first screen */
+
+/* The wave runs under the words and into the phone, which stands in front of it. */
+.hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 48px; padding-top: 48px; padding-bottom: 64px; }
+.hero-copy { position: relative; z-index: 1; align-self: start; padding-top: 72px; padding-bottom: 340px; }
+.hero-visual { position: static; }
+.hero .wave { position: absolute; z-index: 0; left: var(--pad); right: calc(var(--pad) + 170px); bottom: 224px; width: auto; height: 140px; color: var(--wave); }
+.hero .device { --w: 340px; position: relative; z-index: 1; }
+
+h1 { margin: 0 0 24px; font-size: clamp(72px, 12vw, 160px); font-weight: 600; line-height: 0.95; }
+
+.lede { max-width: 13em; margin: 0 0 24px; font-size: clamp(28px, 3.4vw, 44px); font-weight: 600; line-height: 1.12; }
+
+.sub { max-width: 30em; margin: 0 0 32px; color: var(--muted); font-size: clamp(17px, 1.6vw, 21px); }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.button[aria-disabled="true"] { cursor: default; }
+
+.note { margin: 16px 0 0; color: var(--muted); font-size: 15px; }
+
+/* The sections below it */
+
+.section .wrap { padding-top: 64px; padding-bottom: 96px; }
+.rule { border-top: 1px solid var(--line); padding-top: 64px; }
+
+h2 { max-width: 15em; margin: 0 0 24px; font-size: clamp(36px, 5vw, 64px); font-weight: 600; line-height: 1.05; }
+
+.copy p { max-width: 32em; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; }
+.split .art { display: flex; justify-content: center; }
+
+.rows { max-width: 36em; margin: 32px 0 0; border-top: 1px solid var(--line); }
+.rows div { display: grid; grid-template-columns: 10em minmax(0, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.rows dt { font-weight: 600; }
+.rows dd { margin: 0; color: var(--muted); }
+
+/* A headline across the top, then its words in two columns. */
+.cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; margin-top: 16px; }
+.cols p { max-width: 32em; }
+.cols .rows { margin-top: 0; }
+
+.watch { width: 300px; }
+.watch .case, .watch .crown { fill: var(--bezel); stroke: var(--bezel-edge); stroke-width: 1; }
+.watch .screen { fill: #000; }
+.watch text { font-family: inherit; fill: #fff; font-variant-numeric: tabular-nums; }
+.watch .face-time { font-size: 30px; font-weight: 600; }
+.watch .face-label { font-size: 17px; font-weight: 600; }
+.watch .face-timer { font-size: 50px; font-weight: 600; }
+.watch .face-hint { font-size: 17px; fill: #98989d; }
+.watch .face-wave rect { fill: #fff; }
+.watch .rec { fill: var(--red); }
+
+/* Privacy policy, support and other text pages */
+
+.prose { max-width: 760px; padding-top: 48px; padding-bottom: 96px; }
+.prose h1 { margin-bottom: 8px; font-size: clamp(44px, 6vw, 64px); line-height: 1.05; }
+.prose .updated { margin: 0 0 48px; color: var(--muted); }
+.prose h2 { max-width: none; margin: 48px 0 16px; font-size: 28px; line-height: 1.2; }
+.prose h3 { margin: 32px 0 8px; font-size: 19px; font-weight: 600; }
+.prose ul, .prose ol { margin: 0 0 16px; padding-left: 1.25em; }
+.prose li { margin: 8px 0; }
+.prose li > ul { margin-top: 8px; }
+
+.qa { border-top: 1px solid var(--line); padding: 32px 0 16px; }
+.qa h2 { margin: 0 0 12px; font-size: 24px; }
+
+/* Phones and narrow windows */
+
+@media (max-width: 860px) {
+  body { font-size: 17px; }
+
+  .hero { display: block; padding-top: 24px; padding-bottom: 64px; }
+  .hero-copy { padding-top: 32px; padding-bottom: 48px; }
+  /* Too narrow for the wave to show beside the phone, so it runs the full width above it. */
+  .hero-visual { display: flex; flex-direction: column; align-items: center; }
+  .hero .wave { position: static; align-self: stretch; height: 96px; margin: 0 calc(-1 * var(--pad)) 48px; }
+  .hero .device { --w: 270px; }
+
+  .section .wrap { padding-top: 32px; padding-bottom: 64px; }
+  .rule { padding-top: 48px; }
+
+  .split { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .split .device { --w: 270px; }
+  .split .art { order: 2; }
+
+  .rows div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .cols { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+  .watch { width: 240px; }
+}
+
+@media (max-width: 420px) {
+  :root { --pad: 20px; }
+  .links { gap: 16px; }
+}

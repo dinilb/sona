@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Not used any more: early builds registered this launch agent. It stays in the bundle only so the app
+     can unregister it (LoginItem.removeOldAgent); Open at login is now the system login item. -->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.dinilb.sona.keepalive</string>
+	<key>BundleProgram</key>
+	<string>Contents/MacOS/Sona</string>
+	<key>AssociatedBundleIdentifiers</key>
+	<array>
+		<string>com.dinilb.sona</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>LimitLoadToSessionType</key>
+	<string>Aqua</string>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>SONA_KEPT_ALIVE</key>
+		<string>1</string>
+	</dict>
+</dict>
+</plist>

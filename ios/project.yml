@@ -1,0 +1,221 @@
+# Sona for iPhone and Apple Watch. `make generate` turns this into Sona.xcodeproj (generated, gitignored).
+# The iPhone app links NotesKit and SonaEngine from the Mac package one folder up, so notes are the same format.
+name: Sona
+options:
+  minimumXcodeGenVersion: 2.44.0
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "26.0"
+    watchOS: "26.0"
+packages:
+  SonaKit:
+    path: ..
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: 6SM42LA4ZC
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: NO
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    ENABLE_PREVIEWS: YES
+targets:
+  Sona:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sona
+      - path: Shared
+      - path: Resources/Assets.xcassets
+      - path: Resources/Privacy/App/PrivacyInfo.xcprivacy
+      # The licence texts the Licences screen shows (Apache-2.0 and BSD-2-Clause ask for them to ship with the app).
+      - path: ../LICENSE
+        buildPhase: resources
+      - path: ../THIRD_PARTY.md
+        buildPhase: resources
+      - path: Resources/Licenses
+        buildPhase: resources
+    info:
+      path: Configuration/iOS-Info.plist
+      properties:
+        CFBundleDisplayName: Sona
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSMicrophoneUsageDescription: Sona records your voice notes and turns them into text on this iPhone.
+        NSLocationWhenInUseUsageDescription: Sona adds the street where you recorded to each note. It stays in your notes.
+        NSSupportsLiveActivities: true
+        # Light and dark again (8 Nov 2026 redesign): the screens use the system's colours. (7 Nov it was light only:
+        # buttons tinted .primary on .borderedProminent lost their text in dark mode.)
+        UIBackgroundModes: [audio, processing]
+        # transcribe: the charging-time drain. finish.*: the note after a stop, carried on with the app off screen
+        # (a BGContinuedProcessingTask, whose identifiers must end in .*).
+        BGTaskSchedulerPermittedIdentifiers: [com.dinilb.sona.transcribe, com.dinilb.sona.finish.*]
+        CFBundleURLTypes:
+          - CFBundleURLName: com.dinilb.sona
+            CFBundleURLSchemes: [sona]
+        NSUbiquitousContainers:
+          iCloud.com.dinilb.sona:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: Sona
+            NSUbiquitousContainerSupportedFolderLevels: Any
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: Configuration/iOS.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.dinilb.sona]
+        # The app's own iCloud container. The API key can't attach a container to the App ID, so that was done once
+        # with the Apple ID: iCloud.com.dinilb.sona was assigned to com.dinilb.sona on 6 Nov 2026 (developer.apple.com
+        # > Identifiers > com.dinilb.sona > iCloud). release.sh adds com.apple.developer.icloud-container-environment:
+        # Production when it signs.
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.dinilb.sona]
+        com.apple.developer.ubiquity-container-identifiers: [iCloud.com.dinilb.sona]
+        com.apple.developer.icloud-services: [CloudDocuments]
+    dependencies:
+      - package: SonaKit
+        product: SonaEngine
+      - package: SonaKit
+        product: NotesKit
+      - target: SonaWatch
+        embed: true
+      - target: SonaWidgets
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  SonaWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SonaWidgets
+      - path: Shared/SonaIDs.swift
+      - path: Shared/RecordingAttributes.swift
+      - path: Shared/RecordingIntents.swift
+      - path: Shared/SonaTheme.swift
+      - path: Resources/Privacy/Widgets/PrivacyInfo.xcprivacy
+    info:
+      path: Configuration/widgets-Info.plist
+      properties:
+        CFBundleDisplayName: Sona
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Configuration/widgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.dinilb.sona]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) WIDGET_EXTENSION
+  SonaWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: SonaWatch
+      - path: Shared/SonaIDs.swift
+      - path: Shared/WatchTransfer.swift
+      - path: Shared/WAVFile.swift
+      - path: Shared/SonaTheme.swift
+      - path: Resources/WatchAssets.xcassets
+      - path: Resources/Privacy/Watch/PrivacyInfo.xcprivacy
+    info:
+      path: Configuration/watchOS-Info.plist
+      properties:
+        CFBundleDisplayName: Sona
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.dinilb.sona
+        WKRunsIndependentlyOfCompanionApp: false
+        UIBackgroundModes: [audio]  # watchOS: keeps recording with the wrist down, once started in the foreground
+        NSMicrophoneUsageDescription: Sona records your voice notes on your watch and sends them to your iPhone.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.dinilb.sona.watch
+            CFBundleURLSchemes: [sona]
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: Configuration/watchOS.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.dinilb.sona]
+    dependencies:
+      - target: SonaWatchWidgets
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona.watchkitapp
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  SonaWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - path: SonaWatchWidgets
+      - path: Shared/SonaIDs.swift
+      - path: Shared/SonaTheme.swift
+      - path: Resources/Privacy/WatchWidgets/PrivacyInfo.xcprivacy
+    info:
+      path: Configuration/watchWidgets-Info.plist
+      properties:
+        CFBundleDisplayName: Sona
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Configuration/watchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.dinilb.sona]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona.watchkitapp.widgets
+        TARGETED_DEVICE_FAMILY: "4"
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+  SonaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [SonaTests]
+    dependencies:
+      - target: Sona
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona.tests
+        GENERATE_INFOPLIST_FILE: YES
+  SonaWatchTests:
+    type: bundle.unit-test
+    platform: watchOS
+    sources: [SonaWatchTests]
+    dependencies:
+      - target: SonaWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dinilb.sona.watchkitapp.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Sona:
+    build:
+      targets:
+        Sona: all
+    test:
+      targets: [SonaTests]
+  SonaWatch:
+    build:
+      targets:
+        SonaWatch: all
+    test:
+      targets: [SonaWatchTests]

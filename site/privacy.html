@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy: Sona</title>
+<meta name="description" content="Sona's privacy policy. Sona turns your recordings into text on your device. We have no server, no account and collect nothing.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<!-- Full URLs for link previews. If the site moves (a custom domain), change these. -->
+<link rel="canonical" href="https://dinilb.github.io/sona/privacy.html">
+<meta property="og:url" content="https://dinilb.github.io/sona/privacy.html">
+<meta property="og:image" content="https://dinilb.github.io/sona/img/og.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sona">
+<meta property="og:title" content="Sona privacy policy">
+<meta property="og:description" content="Sona turns your recordings into text on your device. We have no server, no account and collect nothing.">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="wrap top">
+  <a class="brand" href="./" aria-label="Sona, home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><g fill="currentColor"><rect x="2" y="11.5" width="4" height="9" rx="2"/><rect x="8" y="6.5" width="4" height="19" rx="2"/><rect x="14" y="2.5" width="4" height="27" rx="2"/><rect x="20" y="8.5" width="4" height="15" rx="2"/><rect x="26" y="5.5" width="4" height="21" rx="2"/></g></svg>
+    Sona
+  </a>
+  <nav class="links" aria-label="Pages">
+    <a href="privacy.html" aria-current="page">Privacy</a>
+    <a href="support.html">Support</a>
+    <a href="https://github.com/dinilb/sona">GitHub</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap prose">
+  <h1>Privacy policy</h1>
+  <p class="updated">Updated 8 November 2026</p>
+
+  <p>This policy covers Sona for iPhone and Apple Watch (on the App Store as Sona Notes), Sona for Mac, and this website.</p>
+
+  <h2>The short version</h2>
+  <ul>
+    <li>Sona turns your recordings into text <strong>on your device</strong>. Your recordings, transcripts, titles and places are never sent to us. We have no server, and no account to make.</li>
+    <li>We collect nothing: no analytics, no ads, no tracking, no crash-reporting service.</li>
+    <li>Your notes are where you choose: on your device, in your own iCloud Drive, or in a folder you pick.</li>
+    <li>Sona goes on the internet for exactly two things: downloading its speech model once (from Hugging Face), and, if you allow location, looking up a street name for a note (Apple's map service gets the coordinates, nothing else).</li>
+  </ul>
+
+  <h2>What Sona keeps, and where</h2>
+  <p><strong>Recordings and notes.</strong> Each recording becomes a note: a text file with the transcript, a small data file, and the audio (unless you choose not to keep it). They are stored:</p>
+  <ul>
+    <li>on your iPhone (or Mac) while they're being made, in the app's private storage, kept out of backups until the note is written;</li>
+    <li>then where you chose when you set Sona up:
+      <ul>
+        <li><strong>iCloud</strong>: Sona's folder in your own iCloud Drive, so they sync to your other devices and your Mac. Apple stores them under its iCloud terms; with Advanced Data Protection on, they are end-to-end encrypted.</li>
+        <li><strong>On this iPhone</strong>: a folder on the device, included in your iPhone's own iCloud or computer backup.</li>
+        <li><strong>Another folder</strong>: the folder you picked, which may be in iCloud Drive or another provider's storage.</li>
+      </ul>
+    </li>
+    <li>on your Mac, if you use Sona for Mac: it copies your iPhone's notes from iCloud Drive into its own notes folder.</li>
+  </ul>
+  <p><strong>Audio.</strong> You choose how long audio is kept: 30 days (the default), forever, or not at all once the note is written. In 30-day mode, Keep audio on a note keeps that note's audio for good. The Mac keeps its copies under its own settings: deleting audio or a note on your iPhone doesn't delete the Mac's copy.</p>
+  <p><strong>Titles.</strong> On iPhones that support Apple Intelligence, a short title is made by Apple's on-device model. Otherwise Sona for Mac may title your iPhone's notes with the Mac's own on-device model and save the titles beside your notes in iCloud Drive. Titles are never made by a server, ours or Apple's Private Cloud Compute.</p>
+  <p><strong>Places.</strong> Only if you allow location ("While Using the App"; Sona asks once, when you first set it up):</p>
+  <ul>
+    <li>Sona takes one location reading when a recording starts and one when it stops. It never tracks you, and has no permission to use location in the background, so a recording started or stopped from the Lock Screen may have no place.</li>
+    <li>The coordinates are saved in the note (to about 11 metres), and in the app's private storage on the device until the note has its place (at most 30 days).</li>
+    <li>To show a street name such as "4 Main St", Sona sends the coordinates, and nothing else, to Apple's map service (MapKit reverse geocoding), only while Sona is on screen. Apple handles that request under Apple's privacy policy.</li>
+    <li>With Approximate Location, a note shows the town, not the street.</li>
+    <li>Apple Watch recordings get no place.</li>
+    <li>You can turn location off any time in Settings &gt; Apps &gt; Sona &gt; Location. New notes then have no place.</li>
+  </ul>
+  <p><strong>Apple Watch.</strong> Recordings made on the watch are sent to your iPhone over Apple's watch connection (directly between your devices) and deleted from the watch once the iPhone has saved them.</p>
+  <p><strong>The app's log.</strong> Sona keeps a short log of what it did on your iPhone (a recording started or stopped, a note was written and how long that took, errors by their code), to help work out problems such as a note that's slow to arrive. It never holds your words, titles, file names or places. When your notes go to iCloud, the newest part of it (about 256 KB) is also copied to Diagnostics/iPhone.log in Sona's folder in your own iCloud Drive, so you can read it on your Mac or in the Files app. It goes nowhere else. With On this iPhone or another folder there's no copy, and choosing one of those deletes the copy from iCloud.</p>
+  <p><strong>Widgets, Live Activity and notifications.</strong> The Lock Screen and Home Screen can show that Sona is recording, how long for, and your newest note's title (the Lock Screen hides the title until the phone is unlocked). Notifications (a paused or stopped recording, a recording still going) are made on the device. None of this leaves your devices.</p>
+
+  <h2>What goes over the network</h2>
+  <ol>
+    <li><strong>The speech model, once.</strong> About 480 MB on iPhone, downloaded from Hugging Face (huggingface.co) the first time you set Sona up, and again only if it's missing. Like any download, Hugging Face sees your device's IP address and the files requested. Nothing of yours is sent.</li>
+    <li><strong>Street names, if you allow location.</strong> Coordinates go to Apple's map service, as described above.</li>
+    <li><strong>iCloud, if you choose it.</strong> Your notes sync through your own iCloud account. That's between you and Apple; we never see it.</li>
+  </ol>
+  <p>There is nothing else: no analytics, advertising, tracking, crash reports or accounts.</p>
+
+  <h2>Deleting</h2>
+  <ul>
+    <li>Delete a note in Sona: its text, data and audio go from where Sona keeps them (and from iCloud, if that's where it is). Copies Sona for Mac already made stay on the Mac until you delete them there.</li>
+    <li>Delete notes in the Files app (iCloud Drive &gt; Sona) or in Finder.</li>
+    <li>Delete the app: everything Sona kept on the iPhone goes. Notes in iCloud stay in your iCloud Drive until you delete them there or in Settings &gt; [your name] &gt; iCloud &gt; Manage Storage.</li>
+    <li>Places: turn off location for Sona, and delete a note to remove its place.</li>
+  </ul>
+
+  <h2>The microphone</h2>
+  <p>On iPhone and Apple Watch, Sona records only when you start a recording (in the app, on the watch, from a widget, the Lock Screen, Control Center, the Action button or Siri) and stops when you stop it. While it records, iOS shows its recording indicator and Sona shows a Live Activity with a Stop button.</p>
+
+  <h2>Recording other people</h2>
+  <p>Recording laws differ by place: some need everyone's consent before a conversation is recorded. You're responsible for recording lawfully. Speaker labels come from comparing voices on your device, and no voiceprints are kept.</p>
+
+  <h2>Sona for Mac</h2>
+  <ul>
+    <li>It transcribes on the Mac. It has no server, account, analytics, crash reporting or auto-update, and goes on the internet only to download its speech models once from Hugging Face (up to about 1.4 GB).</li>
+    <li>With always-on, the microphone stays on and each conversation becomes a note, and macOS shows its microphone indicator. You can pause it from the menu bar, or turn always-on off so the microphone opens only while you hold the dictation key.</li>
+    <li>"Hear this Mac's audio too" (off unless you turn it on) also transcribes what the Mac plays, such as a video or the other side of a call, on the Mac.</li>
+    <li>The Mac's own audio is deleted once its note is written. Notes and their folders can be read only by your account on the Mac, and its log never contains what was said.</li>
+    <li>If you turn on AI access, the AI apps you connect (such as Claude, Cursor or Codex) can read your notes and the live transcript through Sona's MCP server, which runs on your Mac. What those apps then send to their own servers is between you and them. Turn AI access off and they get nothing.</li>
+    <li>Delete the last 5, 15 or 60 minutes from the menu bar, and everything heard in that time is gone for good.</li>
+  </ul>
+
+  <h2>This website</h2>
+  <p>This site has no cookies, analytics, ads or scripts, and loads nothing from other sites. It's hosted on GitHub Pages: GitHub logs the IP address of each visit for security, under the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>
+
+  <h2>Children</h2>
+  <p>Sona isn't directed at children under 13 and collects nothing from anyone.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, the new version is posted here with a new date. Since we collect nothing, there's no one for us to notify by email.</p>
+
+  <h2>Contact</h2>
+  <p>Sona is made by Dinil Balasuriya. Questions about this policy: <a href="https://github.com/dinilb/sona/issues">open an issue on GitHub</a>.</p>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Sona is made by Dinil Balasuriya.</p>
+    <nav class="links" aria-label="Footer">
+      <a href="privacy.html" aria-current="page">Privacy</a>
+      <a href="support.html">Support</a>
+      <a href="https://github.com/dinilb/sona">GitHub</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

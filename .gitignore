@@ -1,0 +1,14 @@
+/build/
+/.build/
+/.swiftpm/
+/test-audio/*.wav
+/test-audio/*.aiff
+/test-audio/parts/
+/test-home/
+.DS_Store
+/.claude/
+/test-audio/dictate.tsv
+# Screenshots and drafts made while designing (large PNGs; the chosen ones get committed on their own)
+/design/ui-options/
+/design/site-preview/
+/design/icon/2026-11-08/
