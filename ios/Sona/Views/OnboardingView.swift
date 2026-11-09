@@ -495,6 +495,9 @@ private struct DownloadLine: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // On an iPad (the iPhone app in a window) the window's controls sit in the top leading corner, inside the safe
+        // area: the line starts after them there. Nothing moves on an iPhone, which has no window controls.
+        .containerCornerOffset(.leading, sizeToFit: true)
         .padding(.horizontal, 24)
         .padding(.vertical, 8)
         .background(Color(uiColor: .systemBackground))
