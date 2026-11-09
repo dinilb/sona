@@ -1,6 +1,7 @@
 import AppKit
 import NotesKit
 import SonaEngine
+import Sparkle
 import SwiftUI
 
 /// The app's shell: the single-copy lock, the menu bar icon and its menu, the window (and the Dock icon only
@@ -18,6 +19,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var signalSources: [DispatchSourceSignal] = []
 
     private var atLogin = false
+    /// Sparkle: checks the appcast on the project site for a signed newer version, once a day after the user agrees
+    /// (it asks on the second launch), and on "Check for Updates...". Real launches only, like the rest of this class.
+    private var updater: SPUStandardUpdaterController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // First, while the launch's Apple event (the open-application one, sent after willFinishLaunching) is still
@@ -43,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         LoginItem.removeOldAgent()
         watchSignals()
         model = AppModel()
+        updater = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         setUpMainMenu()
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusMenu.delegate = self
@@ -133,11 +138,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         if window == nil, firstRun == nil { NSApp.setActivationPolicy(.accessory) }
     }
 
+    /// "Check for Updates...", handled by Sparkle's controller (it greys the item out while a check is running).
+    private func checkForUpdatesItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "Check for Updates...", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+        item.target = updater
+        return item
+    }
+
     private func setUpMainMenu() {
         let main = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
         appMenu.addItem(action("About Sona", #selector(openAbout)))
+        appMenu.addItem(checkForUpdatesItem())
         appMenu.addItem(.separator())
         appMenu.addItem(action("Settings...", #selector(openSettings), key: ","))
         appMenu.addItem(.separator())
@@ -221,6 +234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             menu.addItem(action("Save Last Dictation for Debugging", #selector(saveLastDictation)))
         }
         menu.addItem(.separator())
+        menu.addItem(checkForUpdatesItem())
         menu.addItem(action("Quit Sona", #selector(quit), key: "q"))
     }
 
