@@ -1,8 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- The iOS app icon: design/icon/icon.svg full-bleed (iOS masks the corners itself). Made by ios/scripts/make-icon-svg.py. -->
-  <defs><linearGradient id="body" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FEFDFB"/><stop offset="1" stop-color="#F1EFE9"/></linearGradient></defs>
-  <rect width="1024" height="1024" fill="url(#body)"/>
-  <g transform="translate(512 512) scale(1.05) translate(-512 -512)">
-  <path fill="#1F1E1C" d="M464 192h16v16h-16zM528 192h16v16h-16zM480 208h16v16h-16zM544 208h16v16h-16zM464 224h16v16h-16zM496 224h16v16h-16zM528 224h16v16h-16zM480 240h16v16h-16zM512 240h16v16h-16zM544 240h16v16h-16zM464 256h96v16h-96zM752 256h16v16h-16zM816 256h16v16h-16zM464 272h96v16h-96zM768 272h16v16h-16zM832 272h16v16h-16zM320 288h16v16h-16zM384 288h16v16h-16zM464 288h96v16h-96zM752 288h16v16h-16zM784 288h16v16h-16zM816 288h16v16h-16zM336 304h16v16h-16zM400 304h16v16h-16zM464 304h96v16h-96zM768 304h16v16h-16zM800 304h16v16h-16zM832 304h16v16h-16zM320 320h16v16h-16zM352 320h16v16h-16zM384 320h16v16h-16zM464 320h96v16h-96zM752 320h96v16h-96zM336 336h16v16h-16zM368 336h16v16h-16zM400 336h16v16h-16zM464 336h96v16h-96zM608 336h16v16h-16zM672 336h16v16h-16zM752 336h96v16h-96zM320 352h96v16h-96zM464 352h96v16h-96zM624 352h16v16h-16zM688 352h16v16h-16zM752 352h96v16h-96zM320 368h96v16h-96zM464 368h96v16h-96zM608 368h16v16h-16zM640 368h16v16h-16zM672 368h16v16h-16zM752 368h96v16h-96zM320 384h96v16h-96zM464 384h96v16h-96zM624 384h16v16h-16zM656 384h16v16h-16zM688 384h16v16h-16zM752 384h96v16h-96zM176 400h16v16h-16zM240 400h16v16h-16zM320 400h96v16h-96zM464 400h96v16h-96zM608 400h96v16h-96zM752 400h96v16h-96zM192 416h16v16h-16zM256 416h16v16h-16zM320 416h96v16h-96zM464 416h96v16h-96zM608 416h96v16h-96zM752 416h96v16h-96zM176 432h16v16h-16zM208 432h16v16h-16zM240 432h16v16h-16zM320 432h96v16h-96zM464 432h96v16h-96zM608 432h96v16h-96zM752 432h96v16h-96zM192 448h16v16h-16zM224 448h16v16h-16zM256 448h16v16h-16zM320 448h96v16h-96zM464 448h96v16h-96zM608 448h96v16h-96zM752 448h96v16h-96zM176 464h96v16h-96zM320 464h96v16h-96zM464 464h96v16h-96zM608 464h96v16h-96zM752 464h96v16h-96zM176 480h96v16h-96zM320 480h96v16h-96zM464 480h96v16h-96zM608 480h96v16h-96zM752 480h96v16h-96zM176 496h96v16h-96zM320 496h96v16h-96zM464 496h96v16h-96zM608 496h96v16h-96zM752 496h96v16h-96zM176 512h96v16h-96zM320 512h96v16h-96zM464 512h96v16h-96zM608 512h96v16h-96zM752 512h96v16h-96zM176 528h96v16h-96zM320 528h96v16h-96zM464 528h96v16h-96zM608 528h96v16h-96zM752 528h96v16h-96zM176 544h96v16h-96zM320 544h96v16h-96zM464 544h96v16h-96zM608 544h96v16h-96zM752 544h96v16h-96zM192 560h16v16h-16zM224 560h16v16h-16zM256 560h16v16h-16zM320 560h96v16h-96zM464 560h96v16h-96zM608 560h96v16h-96zM752 560h96v16h-96zM176 576h16v16h-16zM208 576h16v16h-16zM240 576h16v16h-16zM320 576h96v16h-96zM464 576h96v16h-96zM608 576h96v16h-96zM752 576h96v16h-96zM192 592h16v16h-16zM256 592h16v16h-16zM320 592h96v16h-96zM464 592h96v16h-96zM608 592h96v16h-96zM752 592h96v16h-96zM176 608h16v16h-16zM240 608h16v16h-16zM320 608h96v16h-96zM464 608h96v16h-96zM608 608h96v16h-96zM752 608h96v16h-96zM320 624h96v16h-96zM464 624h96v16h-96zM624 624h16v16h-16zM656 624h16v16h-16zM688 624h16v16h-16zM752 624h96v16h-96zM320 640h96v16h-96zM464 640h96v16h-96zM608 640h16v16h-16zM640 640h16v16h-16zM672 640h16v16h-16zM752 640h96v16h-96zM320 656h96v16h-96zM464 656h96v16h-96zM624 656h16v16h-16zM688 656h16v16h-16zM752 656h96v16h-96zM336 672h16v16h-16zM368 672h16v16h-16zM400 672h16v16h-16zM464 672h96v16h-96zM608 672h16v16h-16zM672 672h16v16h-16zM752 672h96v16h-96zM320 688h16v16h-16zM352 688h16v16h-16zM384 688h16v16h-16zM464 688h96v16h-96zM752 688h96v16h-96zM336 704h16v16h-16zM400 704h16v16h-16zM464 704h96v16h-96zM768 704h16v16h-16zM800 704h16v16h-16zM832 704h16v16h-16zM320 720h16v16h-16zM384 720h16v16h-16zM464 720h96v16h-96zM752 720h16v16h-16zM784 720h16v16h-16zM816 720h16v16h-16zM464 736h96v16h-96zM768 736h16v16h-16zM832 736h16v16h-16zM464 752h96v16h-96zM752 752h16v16h-16zM816 752h16v16h-16zM480 768h16v16h-16zM512 768h16v16h-16zM544 768h16v16h-16zM464 784h16v16h-16zM496 784h16v16h-16zM528 784h16v16h-16zM480 800h16v16h-16zM544 800h16v16h-16zM464 816h16v16h-16zM528 816h16v16h-16z"/>
+  <!-- The iOS app icon, full bleed (iOS masks the corners): a voice wave in white and its reflection in pink, on red. -->
+  <rect width="1024" height="1024" fill="#FF3B30"/>
+  <g>
+    <rect x="123.5" y="508" width="40" height="80" rx="20" fill="#FFFFFF"/>
+    <rect x="123.5" y="612" width="40" height="44" rx="20" fill="#FFB3AD"/>
+    <rect x="190.5" y="444" width="40" height="144" rx="20" fill="#FFFFFF"/>
+    <rect x="190.5" y="612" width="40" height="80" rx="20" fill="#FFB3AD"/>
+    <rect x="257.5" y="348" width="40" height="240" rx="20" fill="#FFFFFF"/>
+    <rect x="257.5" y="612" width="40" height="132" rx="20" fill="#FFB3AD"/>
+    <rect x="324.5" y="244" width="40" height="344" rx="20" fill="#FFFFFF"/>
+    <rect x="324.5" y="612" width="40" height="188" rx="20" fill="#FFB3AD"/>
+    <rect x="391.5" y="148" width="40" height="440" rx="20" fill="#FFFFFF"/>
+    <rect x="391.5" y="612" width="40" height="242" rx="20" fill="#FFB3AD"/>
+    <rect x="458.5" y="228" width="40" height="360" rx="20" fill="#FFFFFF"/>
+    <rect x="458.5" y="612" width="40" height="198" rx="20" fill="#FFB3AD"/>
+    <rect x="525.5" y="324" width="40" height="264" rx="20" fill="#FFFFFF"/>
+    <rect x="525.5" y="612" width="40" height="146" rx="20" fill="#FFB3AD"/>
+    <rect x="592.5" y="212" width="40" height="376" rx="20" fill="#FFFFFF"/>
+    <rect x="592.5" y="612" width="40" height="206" rx="20" fill="#FFB3AD"/>
+    <rect x="659.5" y="276" width="40" height="312" rx="20" fill="#FFFFFF"/>
+    <rect x="659.5" y="612" width="40" height="172" rx="20" fill="#FFB3AD"/>
+    <rect x="726.5" y="380" width="40" height="208" rx="20" fill="#FFFFFF"/>
+    <rect x="726.5" y="612" width="40" height="114" rx="20" fill="#FFB3AD"/>
+    <rect x="793.5" y="460" width="40" height="128" rx="20" fill="#FFFFFF"/>
+    <rect x="793.5" y="612" width="40" height="70" rx="20" fill="#FFB3AD"/>
+    <rect x="860.5" y="508" width="40" height="80" rx="20" fill="#FFFFFF"/>
+    <rect x="860.5" y="612" width="40" height="44" rx="20" fill="#FFB3AD"/>
   </g>
 </svg>
