@@ -16,7 +16,7 @@ public final class Engine: @unchecked Sendable {
     let diarizer: OfflineDiarizerManager
     /// Loaded once and shared by every diarizer this engine makes (a hint needs its own config).
     private let diarizerModels: OfflineDiarizerModels
-    private let decoderLayers: Int
+    let decoderLayers: Int
 
     private init(model: String, cpuOnly: Bool, asr: AsrManager, diarizerModels: OfflineDiarizerModels, decoderLayers: Int) {
         self.model = model
