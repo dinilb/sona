@@ -104,4 +104,4 @@ us to notify by email.
 
 ## Contact
 
-Sona is made by Dinil Balasuriya. Questions about this policy: [open an issue on GitHub](https://github.com/dinilb/sona/issues).
+Sona is made by Dinil Balasuriya. Questions about this policy: email [excedil.dev@gmail.com](mailto:excedil.dev@gmail.com) or [open an issue on GitHub](https://github.com/dinilb/sona/issues).
