@@ -94,7 +94,8 @@ public enum Log {
 
     /// A folder for the log, with the home folder as `~`: its name is often the user's, and log lines get pasted.
     public static func path(_ url: URL) -> String {
-        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
+        // NSHomeDirectory, not homeDirectoryForCurrentUser: NotesKit is built for the iPhone too, where that's missing.
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).standardizedFileURL.path
         let path = url.standardizedFileURL.path
         if path == home { return "~" }
         return path.hasPrefix(home + "/") ? "~" + String(path.dropFirst(home.count)) : path
