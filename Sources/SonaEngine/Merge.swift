@@ -10,10 +10,7 @@ enum Merge {
     /// first appearance.
     static func assignSpeakers(words: [WordTiming], segments: [TimedSpeakerSegment]) -> ([Word], [Turn]) {
         let sorted = segments.sorted { $0.startTimeSeconds < $1.startTimeSeconds }
-        var names: [String: String] = [:]
-        for segment in sorted where names[segment.speakerId] == nil {
-            names[segment.speakerId] = "Speaker \(names.count + 1)"
-        }
+        let names = speakerNames(sorted)
         let turns = sorted.map {
             Turn(
                 speaker: names[$0.speakerId]!, start: Double($0.startTimeSeconds),
@@ -30,6 +27,15 @@ enum Merge {
             assigned.append(Word(word: w.word, start: w.startTime, end: w.endTime, speaker: speaker))
         }
         return (assigned, turns)
+    }
+
+    /// The diarizer's speaker ids as "Speaker 1, 2, ...", in order of first appearance (`sorted`: by start time).
+    static func speakerNames(_ sorted: [TimedSpeakerSegment]) -> [String: String] {
+        var names: [String: String] = [:]
+        for segment in sorted where names[segment.speakerId] == nil {
+            names[segment.speakerId] = "Speaker \(names.count + 1)"
+        }
+        return names
     }
 
     /// No diarization to go on (too little speech): every word is Speaker 1.

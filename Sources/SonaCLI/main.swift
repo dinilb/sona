@@ -14,6 +14,7 @@ let usage = """
       sona import-phone [--from PATH]   Copy the iPhone app's notes (from iCloud Drive) into the notes folder
       sona models [--model v2|v3]       Download the models (one time, then fully offline)
       sona mcp                          Run the MCP server on stdio (same as sona-mcp)
+      sona spool-serve                  For the MCP server: transcribe audio not yet in a note, on request (stdin)
       sona status                       Settings, models, spool and app state
 
     OPTIONS
@@ -122,7 +123,7 @@ if options.from != nil, options.command != "import-phone" {
     say("error: --from only works with `sona import-phone`\n")
     exit(2)
 }
-if options.command != "mcp" { Log.echoToStderr = true }
+if options.command != "mcp", options.command != "spool-serve" { Log.echoToStderr = true }
 Models.goOffline()  // `sona models` turns it off only while downloading
 
 do {
@@ -133,7 +134,10 @@ do {
     case "import-phone": try runImportPhone(options)
     case "models": try await runModels(options)
     // Same switch as sona-mcp: no settings file, or one that can't be read, is AI access off.
-    case "mcp": MCPServer(store: NoteStore(settings: options.settings()), enabled: { Settings.aiAccessAllowed }).run()
+    case "mcp":
+        let helper = SpoolHelper(executable: (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])).resolvingSymlinksInPath())
+        MCPServer(store: NoteStore(settings: options.settings()), enabled: { Settings.aiAccessAllowed }, spool: .helper(helper)).run()
+    case "spool-serve": await runSpoolServe(options)
     case "status": runStatus(options)
     case "help", "-h", "--help": print(usage)
     default:
@@ -335,6 +339,67 @@ func runModels(_ options: Options) async throws {
         if last.swap(pct) != pct { say("  \(pct)% \(phase)") }
     }
     say("done: \(Paths.models.path)")
+}
+
+/// The MCP server's helper (`SpoolHelper` starts it): one JSON request per line on stdin (`SpoolRequest`), one reply per
+/// line on stdout (`SpoolSlice`). Loads the notes model when it's needed, and lets it go after a minute with nothing to
+/// do; keeps every piece it has transcribed, in memory, until stdin closes or nothing is asked for `idleSeconds`.
+/// Between requests it finishes what the last one ran out of time for. Only reads the spool; writes nothing anywhere.
+/// Below the app's priority, so the live transcript and dictation go first.
+func runSpoolServe(_ options: Options) async {
+    let idleSeconds = 600.0
+    setpriority(PRIO_PROCESS, 0, 10)
+    // Replies go out on a copy of stdout; anything else that prints (a library's progress) goes to stderr instead, so
+    // it can never get in among them.
+    let replies = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
+    dup2(STDERR_FILENO, STDOUT_FILENO)
+    let transcriber = SpoolTranscriber(spool: Spool(dir: Paths.spool, create: false), model: options.settings().model)
+    let input = LineQueue()
+    input.start()
+    var lastRequest = Date()
+    while true {
+        if let line = input.pop() {
+            var reply: SpoolSlice
+            if let request = try? JSONDecoder().decode(SpoolRequest.self, from: Data(line.utf8)) {
+                let deadline = Date().addingTimeInterval(min(max(request.seconds, 0), 600))
+                reply = await transcriber.slice(id: request.id, from: request.from, to: request.to, deadline: deadline)
+            } else {
+                reply = SpoolSlice(words: [], from: 0, to: 0, doneFrom: 0, duration: 0, error: "Bad request.")
+            }
+            var data = (try? JSONEncoder().encode(reply)) ?? Data(#"{"words":[],"from":0,"to":0,"doneFrom":0,"duration":0,"error":"Internal error."}"#.utf8)
+            data.append(10)
+            guard (try? replies.write(contentsOf: data)) != nil else { return }  // the server went away
+            lastRequest = Date()
+        } else if input.isClosed {
+            return
+        } else if await transcriber.continueLeftover() {
+            continue
+        } else if Date().timeIntervalSince(lastRequest) > idleSeconds {
+            return
+        } else if Date().timeIntervalSince(lastRequest) > 60, await transcriber.engineLoaded {
+            await transcriber.unloadEngine()  // a minute with nothing asked: the models' memory back, the pieces kept
+        } else {
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+    }
+}
+
+/// Lines from stdin, read on their own thread so the transcriber can work between them.
+final class LineQueue: @unchecked Sendable {  // `lines` and `closed` only under `lock`
+    private let lock = NSLock()
+    private var lines: [String] = []
+    private var closed = false
+
+    func start() {
+        Thread { [self] in
+            while let line = readLine(strippingNewline: true) { lock.withLock { lines.append(line) } }
+            lock.withLock { closed = true }
+        }.start()
+    }
+
+    func pop() -> String? { lock.withLock { lines.isEmpty ? nil : lines.removeFirst() } }
+
+    var isClosed: Bool { lock.withLock { closed && lines.isEmpty } }
 }
 
 func runStatus(_ options: Options) {

@@ -345,7 +345,8 @@ final class NotesKitTests: XCTestCase {
 
         let list = try call(#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#)
         let names = ((list["result"] as? [String: Any])?["tools"] as? [[String: Any]])?.compactMap { $0["name"] as? String }
-        XCTAssertEqual(names, ["live", "recent", "list_conversations", "read_conversation", "search", "rename_speaker"])
+        XCTAssertEqual(
+            names, ["live", "current_conversation", "transcript", "recent", "list_conversations", "read_conversation", "search", "rename_speaker"])
 
         func text(_ reply: [String: Any]) -> String {
             (((reply["result"] as? [String: Any])?["content"] as? [[String: Any]])?.first?["text"] as? String) ?? ""
@@ -370,7 +371,7 @@ final class NotesKitTests: XCTestCase {
             let text = ((result["content"] as? [[String: Any]])?.first?["text"] as? String) ?? ""
             return (text, result["isError"] as? Bool ?? false)
         }
-        for name in ["live", "recent", "list_conversations", "search", "read_conversation", "rename_speaker"] {
+        for name in ["live", "current_conversation", "transcript", "recent", "list_conversations", "search", "read_conversation", "rename_speaker"] {
             let (text, isError) = try call(name, #"{"query":"pricing","id":"x","conversation":"x","from":"Speaker 1","to":"A"}"#)
             XCTAssertEqual(text, MCPServer.offMessage, name)
             XCTAssertTrue(isError)

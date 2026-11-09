@@ -9,4 +9,6 @@ if CommandLine.arguments.contains("--help") || CommandLine.arguments.contains("-
 }
 // Off until the app's first run is finished and AI access is on (no settings file: the app was never set up; one
 // that can't be read: off too, never a default of on).
-MCPServer(enabled: { Settings.aiAccessAllowed }).run()
+// Audio not yet in a note is transcribed by the `sona` CLI beside this binary (it has the speech models; this doesn't).
+let helper = SpoolHelper.beside(Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0]))
+MCPServer(enabled: { Settings.aiAccessAllowed }, spool: .helper(helper)).run()

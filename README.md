@@ -6,7 +6,7 @@ Sona listens on your Mac and writes down what it hears:
 - **This Mac's audio too**, if you turn it on: a video, a call, anything the Mac plays, as its own track labelled Mac audio.
 - **Hold to dictate**: hold fn (or your own shortcut) in any app, talk, let go, and the words are pasted where you're typing.
 - **Always-on notes**, if you want them: every conversation becomes a markdown note with who said what, in a folder you own.
-- **For your AI**: Claude, Cursor, Codex or any MCP client can read the notes and the live transcript, if you let it.
+- **For your AI**: Claude, Cursor, Codex or any MCP client can read the notes, the live transcript and the conversation still going on, if you let it.
 
 Everything runs on your Mac: no account, no cloud, no API keys, no analytics. The only network use is downloading the speech models once and, if you allow it, checking for updates.
 
@@ -162,7 +162,7 @@ The iPhone app writes its notes the same way (a `.md`, a `.json` and the recordi
 
 ## Connect your AI
 
-The MCP server is `Sona.app/Contents/MacOS/sona-mcp` (stdio, local only). `make install` prints the line for Claude Code, and Settings > AI access has a copy button:
+The MCP server is `Sona.app/Contents/MacOS/sona-mcp` (stdio, local only). One line adds it to Claude Code for every session, in every folder (`--scope user`; `claude mcp list` shows it). `make install` prints it, and Settings > AI access has a copy button:
 
 ```sh
 claude mcp add --scope user sona -- /Applications/Sona.app/Contents/MacOS/sona-mcp
@@ -178,14 +178,18 @@ Codex: `codex mcp add sona -- /Applications/Sona.app/Contents/MacOS/sona-mcp`
 
 | Tool | What the AI gets |
 | --- | --- |
-| `live` | The live transcript: the last N seconds (default 2 minutes, at most 10) or the last N words, with speakers. Only while always-on is on and not paused. |
+| `live` | The live transcript: the last N seconds (default 2 minutes, at most 10) or the last N words, with speakers. Only while always-on is on and not paused. `minutes` or `since` reach further back: past 10 minutes it reads like `transcript`. |
+| `current_conversation` | All of the conversation going on now, from its start, with speakers (or the one that just ended, until its note is written). |
+| `transcript` | Everything said between two times (`14:05`, `2026-11-09 14:05`, ISO 8601), from the notes and from audio not yet in a note alike, in time order. |
 | `recent` | What was said in the last N minutes (default 60), or the last N conversations, and whether one is still going. |
 | `list_conversations` | Conversations between two dates (default today). |
 | `read_conversation` | One transcript, paged. |
-| `search` | Full-text search over every transcript, by words, dates or speaker. |
+| `search` | Full-text search over every transcript, by words, dates or speaker, and over the conversation going on now (`in_progress: false` skips it). |
 | `rename_speaker` | Puts a name on a speaker in one conversation (Speaker 1 → Alex). The only tool that changes anything: it rewrites that note (marked destructive, so AI apps can ask first), and never one that changed since it read it. |
 
-**The off switch**: turn off Settings > AI access, and every tool answers "AI access is turned off in Sona's settings" and nothing else. The live transcript file is deleted too.
+A conversation only becomes a note a few minutes after it goes quiet, and the live transcript keeps 10 minutes. For the rest, the tools transcribe its audio in the spool when asked, with the notes model, the way `sona file` does: `sona-mcp` starts `sona spool-serve` beside it the first time, which loads the model (well under a second, or about 20 s the first time after an install), transcribes five minutes at a time at about 90x real time, newest first, and keeps what it transcribed in memory, so asking again only transcribes what's new. A call waits at most about 40 s (20 s for `search`), says what isn't done yet, and the rest carries on in the background. Speaker numbers there are the reply's own until the note is written. It writes nothing: no note, no file. It lets the model go after an idle minute (about 400 MB) and quits after ten, or when your AI app quits.
+
+**The off switch**: turn off Settings > AI access, and every tool answers "AI access is turned off in Sona's settings" and nothing else. The live transcript file is deleted too, and `sona spool-serve` stops, with what it transcribed.
 
 Then ask things like "what did I talk about this morning?" or "who said they'd send the logo files?".
 
@@ -200,6 +204,7 @@ sona process-spool                   # turn audio left over after a crash into n
 sona import-phone                    # copy the iPhone app's notes in from iCloud Drive (--from PATH for one folder)
 sona models                          # download the notes models
 sona mcp                             # the MCP server (same as sona-mcp)
+sona spool-serve                     # for the MCP server: transcribe audio not yet in a note, on request
 sona status                          # settings, models, spool, and whether the app is running
 ```
 
@@ -209,7 +214,7 @@ sona status                          # settings, models, spool, and whether the 
 - Notes and their folders are readable only by you (files 0600, folders 0700), and so is the support folder with everything in it (settings, the log, the spool, the search index). The log never contains what was said.
 - The app is signed with the hardened runtime, so no other program can load code into it and use its microphone, Accessibility or System Audio Recording permission.
 - If settings.json can't be read, always-on, AI access and Mac audio are off and the iPhone's notes aren't copied in until you change a setting (the file is left as it is; `sona import-phone` then needs `--notes-dir`). A settings file without the AI access switch reads as off. Turning AI access off also deletes the search index.
-- The MCP server only runs when your AI app starts it, only talks over stdio, and only reads your notes and the live transcript file (`rename_speaker` rewrites one note). It never follows a symlink in the notes folder. What your AI app then sends to its own cloud model is between you and that app.
+- The MCP server only runs when your AI app starts it, only talks over stdio, and only reads your notes, the live transcript file and the audio in the spool (`rename_speaker` rewrites one note). The spool's audio is transcribed in the memory of `sona spool-serve`, its own helper, which writes nothing and quits with it. It never follows a symlink in the notes folder. What your AI app then sends to its own cloud model is between you and that app.
 - **Recording laws differ by place**: some need everyone's consent before a conversation is recorded. Speaker labels come from comparing voices, on this Mac, and no voiceprints are kept.
 - This Mac's audio is only heard with its switch on and the System Audio Recording permission given, only while something plays, and like the mic, only while always-on is on and not paused. It's everything the Mac plays (videos, music, calls, notification sounds), transcribed on this Mac; its audio is kept with the conversation's until the note is written, then deleted.
 
@@ -265,6 +270,7 @@ SONA_HOME=$PWD/test-home build/sona models
 SONA_HOME=$PWD/test-home build/sona file test-audio/two-voices.wav
 python3 scripts/score.py test-home/Notes/Conversations/<day>/<note>.json test-audio/two-voices.turns.tsv   # word error rate and speaker accuracy
 SONA_HOME=$PWD/test-home scripts/mcp-smoke.sh
+CLIP=test-audio/two-voices.wav SONA_HOME=$PWD/test-home scripts/mcp-smoke.sh budget   # with a conversation still being recorded
 SONA_HOME=$PWD/test-home build/sona-live-bench test-audio/two-voices.wav   # spoken → right word on screen
 scripts/make-mac-audio-clip.sh   # a room with a video playing: the mic file and the Mac's
 SONA_HOME=$PWD/test-home LIVE_FILE=test-audio/mac-room.wav LIVE_FILE_MAC=test-audio/mac-audio.wav \
