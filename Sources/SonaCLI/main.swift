@@ -134,7 +134,9 @@ do {
     case "import-phone": try runImportPhone(options)
     case "models": try await runModels(options)
     // Same switch as sona-mcp: no settings file, or one that can't be read, is AI access off.
-    case "mcp": MCPServer(store: NoteStore(settings: options.settings()), enabled: { Settings.aiAccessAllowed }).run()
+    case "mcp":
+        let helper = SpoolHelper(executable: (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])).resolvingSymlinksInPath())
+        MCPServer(store: NoteStore(settings: options.settings()), enabled: { Settings.aiAccessAllowed }, spool: .helper(helper)).run()
     case "spool-serve": await runSpoolServe(options)
     case "status": runStatus(options)
     case "help", "-h", "--help": print(usage)
