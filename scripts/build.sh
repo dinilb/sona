@@ -29,6 +29,16 @@ cp LICENSE THIRD_PARTY.md "$APP/Contents/Resources/"
 cp "$FA/LICENSE" "$APP/Contents/Resources/Licenses/FluidAudio-LICENSE.txt"
 cp "$FA/ThirdPartyLicenses/vbx-LICENSE.md" "$FA/ThirdPartyLicenses/fastcluster-LICENSE.md" "$APP/Contents/Resources/Licenses/"
 
+# Sparkle, the updater: its framework goes in Contents/Frameworks, where the app's rpath looks. Sona isn't sandboxed,
+# so Sparkle's XPC services aren't needed and are left out (fewer pieces to sign, nothing unused shipped).
+SPARKLE="$BIN/Sparkle.framework"
+[[ -d "$SPARKLE" ]] || SPARKLE=$(find build/spm/artifacts -type d -path '*macos*/Sparkle.framework' | head -1)
+[[ -d "$SPARKLE" ]] || { echo "Sparkle.framework not found after swift build" >&2; exit 1; }
+mkdir -p "$APP/Contents/Frameworks"
+ditto "$SPARKLE" "$APP/Contents/Frameworks/Sparkle.framework"
+rm -rf "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices" "$APP/Contents/Frameworks/Sparkle.framework/XPCServices"
+cp build/spm/checkouts/Sparkle/LICENSE "$APP/Contents/Resources/Licenses/Sparkle-LICENSE.txt"
+
 # A stable identity keeps macOS privacy grants (mic, Accessibility for dictation) and the login item across
 # rebuilds; ad-hoc signatures change every build, so they'd be asked for again each time. The first Developer
 # ID in the keychain is used, if there is one; SIGN_IDENTITY picks another, or `-` for ad hoc.
@@ -39,7 +49,14 @@ echo "==> signing (${IDENTITY:-ad hoc}, hardened runtime)"
 # (DYLD_INSERT_LIBRARIES) and use Sona's mic, Accessibility and System Audio grants. It blocks the mic unless the
 # app has the audio-input entitlement. Everything Sona loads is its own code or the system's, so library
 # validation can stay on.
-sign() { codesign --force --options runtime --sign "${IDENTITY:--}" "$@"; }
+# No secure timestamp here (a Developer ID asks for one by default, and Apple's server is sometimes slow or down);
+# `make release` signs again with one.
+sign() { codesign --force --options runtime --timestamp=none --sign "${IDENTITY:--}" "$@"; }
+# Inside out: Sparkle's helper and its updater app, then the framework, then Sona's own binaries and the app.
+SPARKLE_FW="$APP/Contents/Frameworks/Sparkle.framework"
+sign "$SPARKLE_FW/Versions/B/Autoupdate"
+sign "$SPARKLE_FW/Versions/B/Updater.app"
+sign "$SPARKLE_FW"
 sign --identifier com.dinilb.sona.mcp "$APP/Contents/MacOS/sona-mcp"
 sign --identifier com.dinilb.sona.cli "$APP/Contents/Helpers/sona"
 sign --entitlements Resources/Sona.entitlements "$APP"

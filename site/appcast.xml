@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sparkle's update feed for Sona for Mac. scripts/publish-mac.sh adds an item at the top for each release. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Sona for Mac</title>
+    <link>https://dinilb.github.io/sona/appcast.xml</link>
+    <description>Updates to Sona for Mac</description>
+    <language>en</language>
+  </channel>
+</rss>
