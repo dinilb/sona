@@ -21,7 +21,8 @@ struct ModelProgressView: View {
                     .tint(.primary)
                     .accessibilityHidden(true)
             }
-            if showsKeepOpen {
+            // Waiting for space it isn't downloading, so "keep Sona open" would be wrong.
+            if showsKeepOpen, !progress.waitsForSpace {
                 Text(ModelProgress.keepOpen)
                     .font(.footnote)
                     .foregroundStyle(.secondary)

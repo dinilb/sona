@@ -27,6 +27,9 @@ final class NotesService {
         case downloading(fraction: Double, phrase: String)
         case ready
         case failed(String)
+        /// Not enough free space to download the rest and still record: this many bytes short. It waits for the next
+        /// launch or foreground instead of trying every 2 minutes (each try's partial files took more of the space).
+        case noSpace(bytes: Int64)
     }
 
     /// Recordings waiting to become notes, the one being transcribed included.
@@ -408,7 +411,7 @@ final class NotesService {
         guard V1Settings.modelDownloadAllowed, !appInBackground, downloadTask == nil else { return }
         switch modelState {
         case .ready, .downloading: return
-        case .missing, .failed: break
+        case .missing, .failed, .noSpace: break
         }
         retryTask?.cancel()
         retryTask = nil
@@ -428,9 +431,14 @@ final class NotesService {
     }
 
     private func download() async {
+        let model = Self.model
+        // Room for the rest of it and for recording (the 200 MB Record needs), or it doesn't start.
+        if let short = await Self.spaceShort(model: model) {
+            waitForSpace(short)
+            return
+        }
         // From what's on disk now, not the furthest the bar got: if FluidAudio deleted a model whose load failed, the
         // bar goes back with it instead of sitting near the end while it downloads again.
-        let model = Self.model
         bestFraction = await Task.detached { Models.downloadFractionOnDisk(model: model) }.value
         modelState = .downloading(fraction: bestFraction, phrase: "Downloading the speech model...")
         // Auto-Lock would suspend the app a minute in; the download only moves while Sona is on screen.
@@ -452,6 +460,12 @@ final class NotesService {
                 // Stopped for the background (`pauseDownload`): not a failure, it carries on when the app is back.
                 modelState = .missing
                 Log.note("speech model download paused off screen")
+            } else if let short = await Self.spaceShort(model: model) {
+                // It ran out of room on the way (what it needs is a guess, and other apps write too): the reason is
+                // the space, so it says how much, and trying again in 2 minutes would only fill the phone up more.
+                Log.note("couldn't download the models: \(Log.describe(error))")
+                waitForSpace(short)
+                return
             } else {
                 downloadFailures += 1
                 modelState = .failed(Log.describe(error))
@@ -459,6 +473,30 @@ final class NotesService {
                 scheduleDownloadRetry()
             }
         }
+        endDownloadHold()
+    }
+
+    /// Bytes short of the space the rest of the download and a recording need, or nil when there's room (or the free
+    /// space can't be read).
+    private static func spaceShort(model: String) async -> Int64? {
+        await Task.detached {
+            spaceShortfall(free: PhoneRecorder.freeBytes(at: Paths.support), left: Models.bytesLeftToDownload(model: model))
+        }.value
+    }
+
+    /// How many bytes `free` is short of what's `left` to download plus the room to record afterwards
+    /// (`PhoneRecorder.minFreeBytes`); nil when it's enough, or unknown (it tries then, as before).
+    nonisolated static func spaceShortfall(free: Int64?, left: Int64) -> Int64? {
+        guard let free else { return nil }
+        let needed = left + PhoneRecorder.minFreeBytes
+        return free < needed ? needed - free : nil
+    }
+
+    /// Stops until the next launch or foreground (`ensureModels`): no retry timer, and the network coming back doesn't
+    /// try either.
+    private func waitForSpace(_ short: Int64) {
+        modelState = .noSpace(bytes: short)
+        Log.note("speech model download waits for space: \((short + 999_999) / 1_000_000) MB short")
         endDownloadHold()
     }
 

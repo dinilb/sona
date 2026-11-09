@@ -81,6 +81,12 @@ public enum Models {
 
     static let downloadShare = 0.9
 
+    /// What's left to download for `model`: its size less what's on disk now, half-downloaded files counted. Blocking
+    /// (walks the folder).
+    public static func bytesLeftToDownload(model: String) -> Int64 {
+        max(0, expectedBytes(model: model) - bytesOnDisk(Paths.models))
+    }
+
     /// The bar for what's on disk now (`downloadFraction` of `Paths.models`), for the app to start a download from.
     /// It can be lower than before: FluidAudio deletes a model whose load failed. Blocking (walks the folder).
     public static func downloadFractionOnDisk(model: String) -> Double {

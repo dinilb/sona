@@ -507,6 +507,13 @@ struct ModelProgress: Equatable {
     /// The bar, 0...1; nil when there's no bar (the download stopped and waits to try again).
     var fraction: Double?
     var stopped = false
+    /// Stopped for want of space: `text` says how much to free up.
+    var waitsForSpace = false
+
+    /// Rounded up to whole MB (the units iOS's own storage screen uses), so freeing what it says is enough.
+    static func freeUp(_ bytes: Int64) -> String {
+        "Free up \((max(1, bytes) + 999_999) / 1_000_000) MB to download the speech model."
+    }
 
     /// Under the bar on Home.
     static let keepOpen = "Keep Sona open, it takes a couple of minutes on Wi-Fi. You can record now: it turns into text when it's done."
@@ -531,6 +538,12 @@ struct ModelProgress: Equatable {
             text = "The speech model download stopped. Sona tries again by itself in a moment, from where it got to."
             fraction = nil
             stopped = true
+        case .noSpace(let bytes):
+            // It tries again the next time Sona opens.
+            text = Self.freeUp(bytes)
+            fraction = nil
+            stopped = true
+            waitsForSpace = true
         }
     }
 }

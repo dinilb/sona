@@ -20,7 +20,7 @@ final class PhoneRecorder {
         places: .shared)
 
     /// With less free space than this it won't start, and a recording stops by itself.
-    static let minFreeBytes: Int64 = 200_000_000
+    nonisolated static let minFreeBytes: Int64 = 200_000_000
     /// While it records the Live Activity is updated this often, and each update goes stale `staleAfter` later: if the
     /// app dies, or iOS suspends it while a call has the mic, the Lock Screen stops counting within a minute and a half.
     static let heartbeatSeconds: TimeInterval = 60

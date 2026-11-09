@@ -542,6 +542,7 @@ enum OnboardingText {
 
     /// The download line: shorter than Home's, with no "please wait".
     static func download(_ progress: ModelProgress) -> String {
+        if progress.waitsForSpace { return progress.text }
         if progress.stopped { return "The download stopped. Sona tries again by itself." }
         if progress.text.hasPrefix("Getting") { return "Getting the speech model ready" }
         if let fraction = progress.fraction, fraction > 0 {
