@@ -478,8 +478,8 @@ final class PhoneRecorder {
             activityID = id
             activityStartedAt = now
             watchActivity(id)
-            // If it's still recording when iOS ends this activity (8 hours on), he hears about it even if the app
-            // can't run then.
+            // If it's still recording when iOS ends this activity (8 hours on), he hears about it: from the app, or,
+            // while the mic is paused and iOS may have suspended it, from a notice scheduled ahead.
             notices?.activityStarted()
         } catch {
             // Recording goes on without it (Live Activities turned off in Settings, say).
@@ -548,7 +548,7 @@ final class PhoneRecorder {
         // A new one ends the old one (restoreActivity ends every activity that was up before it).
         restoreActivity()
         guard activityID != nil else {
-            // No new one: the old one stays until iOS ends it, and its 8-hour notice stays scheduled.
+            // No new one: the old one stays until iOS ends it, and the notices keep its end.
             activityID = old
             activityStartedAt = since
             watchActivity(old)

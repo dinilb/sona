@@ -49,6 +49,10 @@ final class RecordingNotices {
     private let center: any NoticeCenter
     /// The paused notice is scheduled (or showing): one per pause, however often the mic says it's still paused.
     private var pauseNoticeOut = false
+    /// When the recording's Live Activity reaches iOS's 8-hour limit; nil with none up.
+    private var activityEndsAt: Date?
+    /// A call or Siri has the mic: iOS may suspend the app until it's back.
+    private var micPaused = false
 
     init(center: any NoticeCenter) {
         self.center = center
@@ -61,39 +65,60 @@ final class RecordingNotices {
         takeBackPauseNotice()  // left from an earlier recording
     }
 
-    func paused() {
+    func paused(at now: Date = Date()) {
+        if !micPaused {
+            micPaused = true
+            scheduleStillRecording(now: now)
+        }
         guard !pauseNoticeOut else { return }
         pauseNoticeOut = true
         center.post(.paused, after: Self.pauseGrace)
     }
 
     func resumed() {
+        // The app runs again, so it says it itself if iOS ends the activity. Not once the activity is gone: then the
+        // notice showing is true.
+        if micPaused, activityEndsAt != nil { center.remove([RecordingNotice.stillRecordingID]) }
+        micPaused = false
         takeBackPauseNotice()
     }
 
     /// It stopped. `reason`: it stopped by itself, and that's said at once; nil: he stopped it.
     func stopped(because reason: String? = nil) {
+        micPaused = false
+        activityEndsAt = nil
         takeBackPauseNotice()
         center.remove([RecordingNotice.stillRecordingID])
         if let reason { center.post(.stopped(reason), after: nil) }
     }
 
-    /// A Live Activity went up for the recording: if it still records when iOS ends that activity (8 hours on), he's
-    /// told then, even if the app can't run. A new activity (renewed, or back after a swipe) moves it on.
-    func activityStarted() {
+    /// A Live Activity went up for the recording; iOS ends it 8 hours on. While the mic hears, the app is running then
+    /// and says so itself (`activityLost`), so the notice is only scheduled ahead while the mic is paused, when iOS may
+    /// have suspended the app. Scheduled from the start, it fired 8 hours on after iOS killed Sona mid-recording,
+    /// saying it still recorded when nothing did. A new activity (renewed, or back after a swipe) moves it on.
+    func activityStarted(at now: Date = Date()) {
+        activityEndsAt = now + ActivityLife.systemLimit
         center.remove([RecordingNotice.stillRecordingID])
-        center.post(.stillRecording, after: ActivityLife.systemLimit)
+        if micPaused { scheduleStillRecording(now: now) }
     }
 
     /// iOS ended the activity under a live recording: said now.
     func activityLost() {
+        activityEndsAt = nil
         center.post(.stillRecording, after: nil)
     }
 
     /// The recording's activity was ended by the app (the recording stopped), or the app just launched, so nothing
-    /// records (one that died mid-recording left its 8-hour notice scheduled): nothing left to say.
+    /// records (one that died with the mic paused left its 8-hour notice scheduled): nothing left to say.
     func activityGone() {
+        activityEndsAt = nil
         center.remove([RecordingNotice.stillRecordingID])
+    }
+
+    /// "Still recording" when the activity ends, for an app iOS may not run then.
+    private func scheduleStillRecording(now: Date) {
+        guard let activityEndsAt else { return }
+        center.post(.stillRecording, after: max(1, activityEndsAt.timeIntervalSince(now)))
     }
 
     private func takeBackPauseNotice() {

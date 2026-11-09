@@ -104,16 +104,31 @@ struct V1RecordingDecisionTests {
 /// The "still recording" notice when iOS ends the Live Activity under a recording.
 @MainActor
 struct V1RecordingNoticeTests {
-    @Test func anActivitySchedulesTheEightHourNoticeAndAStopTakesItBack() {
+    @Test func theEightHourNoticeIsOnlyScheduledWhileTheMicIsPaused() {
         let center = FakeNoticeCenter()
         let notices = RecordingNotices(center: center)
-        notices.activityStarted()
-        #expect(center.posts == [.init(notice: .stillRecording, delay: ActivityLife.systemLimit)])
-        #expect(center.showing == [RecordingNotice.stillRecordingID])
+        let start = Date(timeIntervalSince1970: 1_794_000_000)
+        notices.activityStarted(at: start)
+        // The mic hears: the app runs when iOS ends the activity and says so itself. Nothing is scheduled ahead, so iOS
+        // killing Sona mid-recording leaves no notice to fire 8 hours on about a recording that isn't running.
+        #expect(center.posts.isEmpty)
+        // A call takes the mic: iOS may suspend the app now, so the notice waits for the activity's end.
+        notices.paused(at: start + 3_600)
+        #expect(center.posts.contains(.init(notice: .stillRecording, delay: ActivityLife.systemLimit - 3_600)))
+        #expect(center.showing.contains(RecordingNotice.stillRecordingID))
+        // The mic is back: taken back.
+        notices.resumed()
+        #expect(!center.showing.contains(RecordingNotice.stillRecordingID))
+        // Paused again, then a renewed activity: the new one's end.
+        notices.paused(at: start + 7_000)
+        notices.activityStarted(at: start + 7_200)
+        #expect(center.posts.last == .init(notice: .stillRecording, delay: ActivityLife.systemLimit))
 
-        // Swiped away while it records: said at once.
+        // Swiped away while it records: said at once, and the mic coming back doesn't take that back.
         notices.activityLost()
         #expect(center.posts.last == .init(notice: .stillRecording, delay: nil))
+        notices.resumed()
+        #expect(center.showing.contains(RecordingNotice.stillRecordingID))
 
         notices.stopped()
         #expect(center.showing.isEmpty)
@@ -123,9 +138,13 @@ struct V1RecordingNoticeTests {
         let center = FakeNoticeCenter()
         let notices = RecordingNotices(center: center)
         notices.activityStarted()
+        notices.paused()
         notices.activityGone()
-        #expect(center.showing.isEmpty)
-        #expect(center.posts.count == 1)
+        #expect(!center.showing.contains(RecordingNotice.stillRecordingID))
+        // A pause after it schedules nothing: there's no activity left to outlive.
+        notices.resumed()
+        notices.paused()
+        #expect(center.posts.filter { $0.notice == .stillRecording }.count == 1)
     }
 }
 
