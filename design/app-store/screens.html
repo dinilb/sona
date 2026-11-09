@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- The App Store screenshots, the App Store header and the GitHub social preview, drawn from the real captures in
+     captures/. One page, one image per #id: render.sh opens it in headless Chrome at each image's exact size.
+     Change a caption here and run design/app-store/render.sh. Monochrome, SF Pro, no gradients or shadows
+     (design/DESIGN-RULES.md); red only where the app itself shows it. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sona App Store images</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: -apple-system, system-ui, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased;
+         background: #fff; color: #000; overflow: hidden; }
+  .canvas { position: relative; overflow: hidden; background: #fff; color: #000; }
+  .canvas.dark { background: #000; color: #fff; }
+
+  /* iPhone 6.9" (1320 x 2868). The caption sits centred above the device; the device is the same size and
+     place on every image, so the set reads as one. */
+  .iphone { width: 1320px; height: 2868px; }
+  .caption { position: absolute; left: 50px; right: 50px; top: 0; height: 610px; display: flex;
+             align-items: center; justify-content: center; text-align: center; }
+  .caption h1 { margin: 0; font-size: 96px; line-height: 1.12; font-weight: 600; letter-spacing: -0.01em; }
+
+  /* A flat phone: one dark shape around the real screenshot, the island on top. No shadow, no gloss. */
+  .phone { position: absolute; left: 150px; top: 610px; width: 1020px; height: 2169px; border-radius: 146px;
+           background: #000; }
+  .dark .phone { background: #2c2c2e; }
+  .phone img { position: absolute; left: 20px; top: 20px; width: 980px; height: 2129px; border-radius: 126px; }
+  .phone .island { position: absolute; left: 50%; top: 44px; width: 280px; height: 82px; margin-left: -140px;
+                   border-radius: 41px; background: #000; }
+
+  /* A flat Apple Watch Ultra: the real 422 x 514 capture, scaled up, in a dark case with the crown. */
+  .watch { position: absolute; left: 50%; top: 1060px; width: 1060px; height: 1270px; margin-left: -530px;
+           border-radius: 200px; background: #1c1c1e; }
+  .watch img { position: absolute; left: 50px; top: 50px; width: 960px; height: 1170px; border-radius: 150px; }
+  .watch .crown { position: absolute; right: -44px; top: 300px; width: 52px; height: 200px; border-radius: 18px;
+                  background: #1c1c1e; }
+  .watch .button { position: absolute; right: -30px; top: 620px; width: 38px; height: 240px; border-radius: 14px;
+                   background: #1c1c1e; }
+
+  /* GitHub social preview (1280 x 640) and the App Store header (3840 x 1646): icon, name, one line. */
+  .brand { display: flex; align-items: center; justify-content: center; }
+  .brand .row { display: flex; align-items: center; }
+  .brand .icon { border-radius: 22.4%; box-shadow: 0 0 0 2px #e5e5ea; }
+  .brand .name { margin: 0; font-weight: 600; letter-spacing: -0.015em; line-height: 1; }
+  .brand .line { margin: 0; font-weight: 400; line-height: 1.2; }
+  .brand .small { margin: 0; color: #6e6e73; font-weight: 400; }
+  .social { width: 1280px; height: 640px; }
+  .social .icon { width: 232px; height: 232px; margin-right: 64px; }
+  .social .name { font-size: 112px; }
+  .social .line { font-size: 40px; margin-top: 20px; }
+  .social .small { font-size: 30px; margin-top: 16px; }
+  .header { width: 3840px; height: 1646px; }
+  .header .icon { width: 640px; height: 640px; margin-right: 176px; box-shadow: 0 0 0 5px #e5e5ea; }
+  .header .name { font-size: 320px; }
+  .header .line { font-size: 112px; margin-top: 52px; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script>
+  // Every image: what it says and which real capture it shows. "\n" is where a caption breaks (two lines each).
+  const images = {
+    "iphone-1": { caption: "Tap record.\nSona writes it down.", shot: "captures/recording.png" },
+    "iphone-2": { caption: "Transcribed on your iPhone,\nnever uploaded.", shot: "captures/note.png" },
+    "iphone-3": { caption: "Record from your wrist\nor Lock Screen.", watch: "captures/watch-recording.png" },
+    "iphone-4": { caption: "Plain Markdown files\nin your iCloud.", shot: "captures/home-dark.png", dark: true },
+    "iphone-5": { caption: "Find any note\nby day or place.", shot: "captures/place.png" },
+    "iphone-6": { caption: "No account. No ads.\nNo tracking.", shot: "captures/welcome.png" },
+    "social": { brand: true, line: "Voice to text, on your iPhone. No server.", small: "Open source" },
+    "header": { brand: true, line: "Voice to text, on your iPhone. No server." },
+  };
+
+  const id = location.hash.slice(1) || "iphone-1";
+  const image = images[id];
+  const out = document.getElementById("out");
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+  if (image.brand) {
+    out.innerHTML = `<div class="canvas brand ${id}"><div class="row">
+        <img class="icon" src="../icon/icon-ios.svg" alt="">
+        <div><p class="name">Sona</p><p class="line">${esc(image.line)}</p>
+        ${image.small ? `<p class="small">${esc(image.small)}</p>` : ""}</div></div></div>`;
+  } else {
+    const device = image.watch
+      ? `<div class="watch"><div class="crown"></div><div class="button"></div><img src="${image.watch}" alt=""></div>`
+      : `<div class="phone"><img src="${image.shot}" alt=""><div class="island"></div></div>`;
+    out.innerHTML = `<div class="canvas iphone ${image.dark ? "dark" : ""}">
+        <div class="caption"><h1>${esc(image.caption)}</h1></div>${device}</div>`;
+  }
+</script>
+</body>
+</html>
