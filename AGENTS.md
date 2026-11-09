@@ -33,7 +33,7 @@ Read README.md and CONTRIBUTING.md first. Sona is a Swift 6 package; `make` wrap
 ## Style
 
 - Short, plain-English comments that say why. Match the code around you.
-- Keep changes minimal and focused. No new dependencies, network calls, accounts or analytics.
+- Keep changes minimal and focused. No new dependencies, network calls, accounts or analytics. (Sparkle, the Mac app's updater, is the one exception, added 9 Nov 2026.)
 - Never log transcript text or note titles.
 - Tests for behaviour changes; before and after numbers for latency, accuracy or weight.
 

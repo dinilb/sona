@@ -9,7 +9,8 @@ This policy covers Sona for iPhone and Apple Watch (on the App Store as "Sona No
 - We collect nothing: no analytics, no ads, no tracking, no crash-reporting service.
 - Your notes are where you choose: on your device, in your own iCloud Drive, or in a folder you pick.
 - Sona goes on the internet for exactly two things: downloading its speech model once (from Hugging Face), and, if you
-  allow location, looking up a street name for a note (Apple's map service gets the coordinates, nothing else).
+  allow location, looking up a street name for a note (Apple's map service gets the coordinates, nothing else). Sona
+  for Mac also checks for updates, if you allow it.
 
 ## What Sona keeps, and where
 
@@ -70,6 +71,9 @@ paused or stopped recording, a recording still going) are made on the device. No
 2. **Street names, if you allow location.** Coordinates go to Apple's map service, as described above.
 3. **iCloud, if you choose it.** Your notes sync through your own iCloud account. That's between you and Apple; we
    never see it.
+4. **Updates, on the Mac, if you allow them.** Sona for Mac asks before it checks for updates. A check reads a small
+   file from the project site (dinilb.github.io), and an update downloads from GitHub. Like any download, GitHub sees
+   your IP address. Nothing of yours is sent.
 
 There is nothing else: no analytics, advertising, tracking, crash reports or accounts.
 
