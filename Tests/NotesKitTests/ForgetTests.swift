@@ -674,8 +674,11 @@ final class ForgetTests: XCTestCase {
         let previousHome = ProcessInfo.processInfo.environment["SONA_HOME"]
         setenv("SONA_HOME", root.path, 1)
         defer { if let previousHome { setenv("SONA_HOME", previousHome, 1) } else { unsetenv("SONA_HOME") } }
+        XCTAssertFalse(Settings.loadChecked().unreadable, "no file is a new install, not one that can't be read")
         let broken = Data(#"{"alwaysOn": true, "mcp": tru"#.utf8)
         try broken.write(to: Paths.settingsFile)
+        // What the app checks before copying the iPhone's notes into the default folder.
+        XCTAssertTrue(Settings.loadChecked().unreadable)
         let settings = Settings.load()
         XCTAssertTrue(settings.onboarded)
         XCTAssertFalse(settings.alwaysOn)
@@ -689,6 +692,7 @@ final class ForgetTests: XCTestCase {
         changed.mcp = true
         try changed.save()
         XCTAssertEqual(Settings.load(), changed)
+        XCTAssertFalse(Settings.loadChecked().unreadable)
         XCTAssertTrue(Settings.aiAccessAllowed)
         XCTAssertEqual(mode(Paths.settingsFile), 0o600)
     }

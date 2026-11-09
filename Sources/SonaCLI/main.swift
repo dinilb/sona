@@ -296,6 +296,11 @@ func runProcessSpool(_ options: Options) async throws {
 /// it (one import at a time). It only reads the iPhone's folders, and never deletes a note there or here (only its own
 /// temp copies a killed import left behind).
 func runImportPhone(_ options: Options) throws {
+    // Settings that can't be read give the default notes folder, which may not be the user's: the iPhone's notes
+    // (ones deleted from the user's folder too) would be copied into it.
+    if options.notesDir == nil, Settings.loadChecked().unreadable {
+        throw Failure("settings.json can't be read, so the notes folder isn't known. Fix it, or name the folder with --notes-dir.")
+    }
     let settings = options.settings()
     let wanted = options.from.map { [URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath, isDirectory: true)] }
         ?? PhoneImport.defaultSources

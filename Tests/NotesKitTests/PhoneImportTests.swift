@@ -598,7 +598,7 @@ final class PhoneImportTests: XCTestCase {
         XCTAssertEqual(files(notes).filter { $0.hasSuffix(".m4a") }.count, 15)
 
         let list = try JSONDecoder().decode(PhoneImport.State.self, from: Data(contentsOf: state))
-        XCTAssertEqual(list.notes.count, 30)
+        XCTAssertEqual(list.folders[notes.standardizedFileURL.path]?.count, 30)
         let second = imp()
         XCTAssertEqual(second.unchanged, 30)
         XCTAssertEqual(second.changed, 0)
@@ -628,7 +628,7 @@ final class PhoneImportTests: XCTestCase {
         XCTAssertEqual(imp(into: otherNotes).unchanged, 1)
         XCTAssertEqual(logged, [])
         let list = try JSONDecoder().decode(PhoneImport.State.self, from: Data(contentsOf: state))
-        XCTAssertEqual(list.destination, otherNotes.standardizedFileURL.path)
+        XCTAssertEqual(Set(list.folders.keys), [notes.standardizedFileURL.path, otherNotes.standardizedFileURL.path], "both lists")
         XCTAssertTrue(NoteStore.remove(mac(md, in: otherNotes)))
         XCTAssertEqual(imp(into: otherNotes).unchanged, 1)
         XCTAssertEqual(files(otherNotes), [])
@@ -640,14 +640,56 @@ final class PhoneImportTests: XCTestCase {
         XCTAssertEqual(files(notes).count, 3)
     }
 
+    /// Reproduced (9 Nov 2026): import into one folder, delete a note there and cut another, import into a second
+    /// folder, then back to the first. A list started over brought the deleted note back, and the iPhone's whole copy of
+    /// the cut one in next to it as "... 2".
+    func testGoingBackToAFolderKeepsWhatWasDeletedAndCutThere() throws {
+        let deleted = try phoneNote(t0)
+        let cut = try phoneNote(t0.addingTimeInterval(3600), ["Hiring", "plans", "for", "May", "and", "June."])
+        XCTAssertEqual(imp().imported, 2)
+        XCTAssertTrue(NoteStore.remove(mac(deleted)))
+        let shorter = "---\ntitle: \"Hiring plans\"\n---\n\n[00:00] Speaker 1: Hiring plans.\n"  // "delete the last N minutes"
+        try Data(shorter.utf8).write(to: mac(cut))
+
+        XCTAssertEqual(imp(into: otherNotes).imported, 2)
+        logged = []
+        let back = imp()
+        XCTAssertEqual(back.unchanged, 2)
+        XCTAssertEqual(back.changed, 0)
+        XCTAssertEqual(files(notes).count, 2, "the cut note and its .json, nothing else: \(files(notes))")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: mac(deleted).path), "the deleted note stays deleted")
+        XCTAssertEqual(try String(contentsOf: mac(cut), encoding: .utf8), shorter, "and the cut one stays cut")
+        XCTAssertEqual(logged, [])
+    }
+
+    /// The list as version 1 wrote it: one folder's notes, with that folder as `destination` (none from before that).
+    func writeVersion1(destination: String?) throws {
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: state)) as? [String: Any])
+        let folders = try XCTUnwrap(json["folders"] as? [String: Any])
+        var old: [String: Any] = ["version": 1, "notes": try XCTUnwrap(folders[notes.standardizedFileURL.path])]
+        if let destination { old["destination"] = destination }
+        try JSONSerialization.data(withJSONObject: old).write(to: state)
+    }
+
+    func testAOneFolderListFromBeforeStaysWithItsFolder() throws {
+        let md = try phoneNote()
+        imp()
+        XCTAssertTrue(NoteStore.remove(mac(md)))
+        try writeVersion1(destination: notes.standardizedFileURL.path)
+
+        XCTAssertEqual(imp(into: otherNotes).imported, 1)
+        let list = try JSONDecoder().decode(PhoneImport.State.self, from: Data(contentsOf: state))
+        XCTAssertEqual(list.version, 2)
+        XCTAssertEqual(list.folders[notes.standardizedFileURL.path]?.count, 1, "the first folder's list is kept")
+        XCTAssertEqual(imp().unchanged, 1)
+        XCTAssertEqual(files(notes), [], "so the note deleted there stays deleted")
+    }
+
     func testAListWrittenBeforeTheFolderWasRecordedIsKeptAndGainsIt() throws {
         let md = try phoneNote()
         imp()
         // Lists from before the folder was recorded don't have it.
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: state)) as? [String: Any])
-        XCTAssertNotNil(json["destination"], "the list records its folder")
-        json["destination"] = nil
-        try JSONSerialization.data(withJSONObject: json).write(to: state)
+        try writeVersion1(destination: nil)
         // The note was deleted here since: the list still knows.
         XCTAssertTrue(NoteStore.remove(mac(md)))
         logged = []
@@ -658,8 +700,9 @@ final class PhoneImportTests: XCTestCase {
         XCTAssertEqual(files(notes), [], "it stays deleted")
         XCTAssertEqual(logged, [], "and nothing is said")
         let list = try JSONDecoder().decode(PhoneImport.State.self, from: Data(contentsOf: state))
-        XCTAssertEqual(list.destination, notes.standardizedFileURL.path, "now it has the folder")
-        XCTAssertEqual(list.notes.count, 1)
+        XCTAssertEqual(list.version, 2, "saved in this version")
+        XCTAssertEqual(Array(list.folders.keys), [notes.standardizedFileURL.path], "now it has the folder")
+        XCTAssertEqual(list.folders[notes.standardizedFileURL.path]?.count, 1)
     }
 
     func testTheSameNotesFolderSpelledAnotherWayIsNotAChange() throws {

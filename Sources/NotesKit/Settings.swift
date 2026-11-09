@@ -142,15 +142,19 @@ public struct Settings: Codable, Equatable, Sendable {
     /// was set up already, so never the first-run screen again; but nothing that records or shares is assumed on:
     /// always-on, AI access and this Mac's audio are off. The file is left as it is (the app only saves when a setting
     /// is changed), so it can still be fixed by hand.
-    public static func load() -> Settings {
+    public static func load() -> Settings { loadChecked().settings }
+
+    /// `load`, and whether the file was there but couldn't be read. Then these are the defaults, the default notes
+    /// folder among them, which may not be the user's: nothing should copy notes into it on its own.
+    public static func loadChecked() -> (settings: Settings, unreadable: Bool) {
         switch onDisk() {
-        case .missing: return Settings()
-        case .read(let settings): return settings
+        case .missing: return (Settings(), false)
+        case .read(let settings): return (settings, false)
         case .unreadable:
             if warnedUnreadable.withLock({ done in defer { done = true }; return !done }) {
-                Log.note("settings.json can't be read: always-on, AI access and Mac audio are off until a setting is changed")
+                Log.note("settings.json can't be read: always-on, AI access, Mac audio and the iPhone import are off until a setting is changed")
             }
-            return Settings(alwaysOn: false, mcp: false, onboarded: true, macAudio: false)
+            return (Settings(alwaysOn: false, mcp: false, onboarded: true, macAudio: false), true)
         }
     }
 

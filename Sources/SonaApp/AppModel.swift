@@ -153,6 +153,8 @@ final class AppModel {
     @ObservationIgnored private var lastLiveRetry = Date()
     /// The loop that copies the iPhone's notes in (`startPhoneImport`).
     @ObservationIgnored private var phoneImport: Task<Void, Never>?
+    /// settings.json was there but couldn't be read, and no setting has been saved since: `settings` are defaults.
+    @ObservationIgnored private var settingsUnreadable = false
     @ObservationIgnored private var heartbeat: Timer?
     @ObservationIgnored private var ticks = 0
     @ObservationIgnored private var meter: Timer?
@@ -168,7 +170,9 @@ final class AppModel {
     @ObservationIgnored private var testDictation: TestDictation?
 
     init() {
-        settings = Settings.load()
+        let loaded = Settings.loadChecked()
+        settings = loaded.settings
+        settingsUnreadable = loaded.unreadable
         if !FileManager.default.fileExists(atPath: Paths.settingsFile.path) { try? settings.save() }
         fixer = WordFixer(settings.words)
         // With a test file for the Mac's audio too, both start from one moment (read when the first opens). Test
@@ -1049,6 +1053,9 @@ final class AppModel {
 
     /// One pass, off the main thread (the copying, hashing and listing are in the detached task).
     private func importPhoneNotes() async {
+        // Unreadable settings give the default notes folder, which may not be the user's: the iPhone's notes (ones
+        // deleted from the user's folder too) would be copied into it. Not until a setting is saved.
+        guard !settingsUnreadable else { return }
         let root = settings.conversationsURL
         let summary = await Task.detached(priority: .utility) {
             PhoneImport.run(to: root, statePath: PhoneImport.defaultStatePath)
@@ -1157,7 +1164,10 @@ final class AppModel {
         guard new != settings else { return }
         let old = settings
         settings = new
-        do { try new.save() } catch { Log.note("couldn't save settings: \(Log.describe(error))") }
+        do {
+            try new.save()
+            settingsUnreadable = false  // the file reads again, with what the Settings screen shows
+        } catch { Log.note("couldn't save settings: \(Log.describe(error))") }
         if new.alwaysOn != old.alwaysOn {
             Log.note("always-on \(new.alwaysOn ? "on" : "off")")
             if begun { Task { await syncRecorder() } }

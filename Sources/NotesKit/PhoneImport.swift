@@ -20,8 +20,9 @@ import os
 ///   as it was copied (a speaker renamed here, or the note deleted here, stays as it is). An edited copy still gets
 ///   the place, Keep audio and AI title the iPhone adds to a note later (`mergeLaterKeys`), and a title this Mac made
 ///   for a note (`TitlesFile`) goes into its untouched copy here straight away (`addTitle`, `addMacTitle`).
-/// - What was copied is remembered in `statePath`, so a note deleted here doesn't come back. The list belongs to
-///   the notes folder it copied into: with another one (Settings) it starts over, and copies into the new folder.
+/// - What was copied is remembered in `statePath`, so a note deleted here doesn't come back: one list per notes folder
+///   it copied into. Another folder (Settings) gets a list of its own, from nothing; the old folder's is kept, so going
+///   back to it never brings back what was deleted or cut there.
 public enum PhoneImport {
     /// What one run did, in notes.
     public struct Summary: Equatable, Sendable {
@@ -95,23 +96,22 @@ public enum PhoneImport {
         // What an import that was stopped halfway left in the notes folder (none is running now: we hold the lock).
         clearLeftovers(in: conversations, log: log)
 
-        // The list is for the notes folder it copied into. Another folder (Settings) starts from nothing: the
-        // iPhone's notes are copied into it, and any already there with the same words are recognised, not copied
-        // twice. A list from before its folder was recorded is taken to be for this one.
-        var state = loadState(statePath, log: log)
+        // One list per notes folder. A folder not copied into before (Settings) starts from nothing: the iPhone's
+        // notes are copied into it, and any already there with the same words are recognised, not copied twice. The
+        // other folders' lists stay, or going back to one would bring back the notes deleted there.
         let root = conversations.standardizedFileURL.path
-        let folderRecorded = state.destination == root
-        if let was = state.destination, was != root {
-            if !state.notes.isEmpty {
-                log("phone import: the notes folder changed, so the iPhone's notes are copied into the new one from the start (ones already there with the same words are left as they are)")
-            }
-            state = State()
+        let loaded = loadState(statePath, folder: root, log: log)
+        var state = loaded.state
+        let folderRecorded = state.folders[root] != nil
+        if !folderRecorded, state.folders.values.contains(where: { !$0.isEmpty }) {
+            log("phone import: the notes folder changed, so the iPhone's notes are copied into the new one from the start (ones already there with the same words are left as they are)")
         }
-        state.destination = root
-        var importer = Importer(conversations: conversations, state: state)
-        importer.dirty = !folderRecorded  // saved even if no note changes, so the folder is on record and this isn't said again
+        var importer = Importer(conversations: conversations, notes: state.folders[root] ?? [:])
+        // Saved even if no note changes, so the folder is on record (in this format) and this isn't said again.
+        importer.dirty = !folderRecorded || loaded.older
         func save() {
-            do { try saveState(importer.state, to: statePath) } catch {
+            state.folders[root] = importer.notes
+            do { try saveState(state, to: statePath) } catch {
                 logStatus("phone import: couldn't save its list of copied notes (\(Log.describe(error)))", key: statePath.path, log: log)
                 return
             }
@@ -240,13 +240,10 @@ public enum PhoneImport {
     // MARK: what was copied
 
     struct State: Codable {
-        var version = 1
-        /// The notes folder (`<notes>/Conversations`, as a standardized path) these notes were copied into: the list
-        /// is only good for that folder. Nil in a list written before it was recorded; that one is taken to be for
-        /// the folder in use.
-        var destination: String?
-        /// By the iPhone's note id.
-        var notes: [String: Note] = [:]
+        var version = 2
+        /// What was copied into each notes folder (`<notes>/Conversations`, as a standardized path), by the iPhone's
+        /// note id. A folder's list is never dropped for another's: Settings can point Sona at another folder and back.
+        var folders: [String: [String: Note]] = [:]
 
         struct Note: Codable, Equatable {
             /// The file name here, when it isn't the iPhone's: a note of this Mac's own already had that name.
@@ -264,12 +261,24 @@ public enum PhoneImport {
         }
     }
 
-    private static func loadState(_ url: URL, log: (String) -> Void) -> State {
-        guard let data = try? Data(contentsOf: url) else { return State() }
-        if let state = try? JSONDecoder().decode(State.self, from: data), state.version == 1 { return state }
+    /// Version 1 of the list: one notes folder's (`destination`; nil in one from before that was recorded).
+    private struct OneFolderState: Decodable {
+        var version: Int
+        var destination: String?
+        var notes: [String: State.Note]
+    }
+
+    /// The list, and whether it was a version 1 one (so it is saved again as this version). `folder`: the notes folder
+    /// in use, which a version 1 list without its folder is taken to be for.
+    private static func loadState(_ url: URL, folder: String, log: (String) -> Void) -> (state: State, older: Bool) {
+        guard let data = try? Data(contentsOf: url) else { return (State(), false) }
+        if let state = try? JSONDecoder().decode(State.self, from: data), state.version == 2 { return (state, false) }
+        if let old = try? JSONDecoder().decode(OneFolderState.self, from: data), old.version == 1 {
+            return (State(folders: [old.destination ?? folder: old.notes]), true)
+        }
         // Notes already here that match are recognised again; ones edited here would be copied next to them.
         log("phone import: its list of copied notes can't be read, so it starts a new one")
-        return State()
+        return (State(), false)
     }
 
     private static func saveState(_ state: State, to url: URL) throws {
@@ -293,7 +302,8 @@ public enum PhoneImport {
 
     private struct Importer {
         let conversations: URL
-        var state: State
+        /// The list for `conversations`.
+        var notes: [String: State.Note]
         var summary = Summary()
         /// The list has changes that aren't saved yet.
         var dirty = false
@@ -306,7 +316,7 @@ public enum PhoneImport {
         enum Outcome { case imported, updated, unchanged, waiting, kept }
 
         mutating func process(_ note: SourceNote) {
-            switch state.notes[note.id] == nil ? importNew(note) : refresh(note) {
+            switch notes[note.id] == nil ? importNew(note) : refresh(note) {
             case .imported: summary.imported += 1
             case .updated: summary.updated += 1
             case .unchanged: summary.unchanged += 1
@@ -321,7 +331,7 @@ public enum PhoneImport {
         }
 
         private mutating func remember(_ id: String, _ note: State.Note) {
-            state.notes[id] = note
+            notes[id] = note
             dirty = true
             sinceSave += 1
         }
@@ -399,7 +409,7 @@ public enum PhoneImport {
 
         /// A note copied before: has the iPhone's copy changed?
         private mutating func refresh(_ note: SourceNote) -> Outcome {
-            guard let original = state.notes[note.id] else { return .unchanged }
+            guard let original = notes[note.id] else { return .unchanged }
             var rec = original
             defer { if rec != original { remember(note.id, rec) } }
             let dir = conversations.appendingPathComponent(note.day, isDirectory: true)
@@ -500,16 +510,15 @@ public enum PhoneImport {
     public static func addTitle(_ title: String, day: String, stem: String, to conversations: URL, statePath: URL) -> Bool {
         guard let lock = Lock.acquire(statePath.path + ".lock") else { return false }
         defer { lock.release() }
-        var state = loadState(statePath, log: { _ in })
+        let folder = conversations.standardizedFileURL.path
+        var state = loadState(statePath, folder: folder, log: { _ in }).state
         let id = day + "/" + stem
-        guard state.destination == conversations.standardizedFileURL.path, var rec = state.notes[id],
-            let copied = rec.files["md"]
-        else { return false }
+        guard var rec = state.folders[folder]?[id], let copied = rec.files["md"] else { return false }
         let url = conversations.appendingPathComponent(day, isDirectory: true)
             .appendingPathComponent((rec.stem ?? stem) + ".md")
         guard sha256(ofFileAt: url.path) == copied.sha256, let sha = try? addAITitle(title, to: url) else { return false }
         rec.files["md"]?.sha256 = sha
-        state.notes[id] = rec
+        state.folders[folder]?[id] = rec
         // Unsaved, the copy would look edited here and the iPhone's later changes would never replace it: put the
         // note back as it was.
         do { try saveState(state, to: statePath) } catch {
