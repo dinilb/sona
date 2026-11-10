@@ -860,11 +860,13 @@ final class AppModel {
         if sharing {
             let now = Date(), wall = wallClock
             func date(_ s: Double) -> Date { wall.date(atSeconds: s) ?? now }
-            feedLines = currentLines.suffix(400).filter { date($0.end) > now.addingTimeInterval(-600) }.map { line in
-                LiveFeed.Line(
-                    speaker: labelled(line) ? Self.speakerName(line.speaker) : nil, settled: line.settled || !speakersActive,
-                    start: date(line.start), end: date(line.end + 0.24), text: line.text,
-                    command: isCommand(line))
+            feedLines = currentLines.suffix(400).filter { date($0.end) > now.addingTimeInterval(-600) }.flatMap { line in
+                let who = labelled(line) ? Self.speakerName(line.speaker) : nil
+                let settled = line.settled || !speakersActive
+                // Cut where a Command hold starts or stops, so ambient words next to a command aren't marked.
+                return commandHolds.pieces(of: line.text, from: date(line.start), to: date(line.end + 0.24), open: commandOpen).map {
+                    LiveFeed.Line(speaker: who, settled: settled, start: date(line.start), end: date(line.end + 0.24), text: $0.text, command: $0.command)
+                }
             }
         }
         let feed = LiveFeed(listening: sharing && mic == .running, engine: "Parakeet Unified 0.6B", speakers: speakersActive, lines: feedLines)

@@ -75,6 +75,27 @@ public struct CommandHolds: Sendable {
     }
 }
 
+public extension CommandHolds {
+    /// A line cut where holds start and stop: each piece with whether it was said over a hold. Words have no
+    /// times of their own here, so they're spread evenly over the line (good to about a word).
+    func pieces(of text: String, from start: Date, to end: Date, open: Date? = nil) -> [(text: String, command: Bool)] {
+        let words = text.split(separator: " ")
+        guard words.count > 1, end > start else { return [(text, covers(from: start, to: end, open: open))] }
+        let step = end.timeIntervalSince(start) / Double(words.count)
+        var out: [(text: String, command: Bool)] = []
+        for (i, word) in words.enumerated() {
+            let a = start.addingTimeInterval(step * Double(i)), b = a.addingTimeInterval(step)
+            let on = covers(from: a, to: b, open: open)
+            if let last = out.last, last.command == on {
+                out[out.count - 1].text += " " + word
+            } else {
+                out.append((String(word), on))
+            }
+        }
+        return out
+    }
+}
+
 public extension LiveFeed.Line {
     static let commandMark = "[AGENT COMMAND]"
 }

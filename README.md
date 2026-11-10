@@ -71,6 +71,10 @@ Settings > Hear this Mac's audio too (off by default; macOS 14.2 or later):
 - A note that's only Mac audio (a video with nobody talking) is marked `media: true` as before. A call doesn't count.
 - The two tracks share the live speech model, taking turns: while both talk at once, one side's live words can come a few seconds late. What the Mac's track saved up while you dictated goes in a second at a time, so the next dictation never waits behind all of it. The note is transcribed again from both tracks in full.
 
+## Agent commands
+
+Hold **Command** (alone, half a second or more) while you talk and Sona marks what you said as meant for an AI agent: highlighted in Now, and shown as `[AGENT COMMAND]` in the MCP's `live`, `transcript` and `read_conversation` (`command: true` on the line in `Live/now.json`). Everything else stays ambient speech. Holds are kept in `Commands/YYYY-MM-DD.jsonl` in the support folder. Sona only watches the Command key's up and down (not the keys you type), and a hold with Shift, Option or Control is a shortcut and doesn't count. Words are matched to the hold by time, good to about a word.
+
 ## Dictation
 
 - Hold the key and talk. The live words show in a slim one-line pill at the bottom of the screen, above the Dock, as you speak (the latest words, scrolling left as the line fills). Let go, and what you said is transcribed once more, whole, by the notes model (it hears the sentence at once, so it's more accurate, quiet speech too), then pasted where your cursor is. Your clipboard is put back 3 s later (if the words are still on it), and clipboard managers are told to skip the words. A password copied from a password manager is never put back: the clipboard is left empty instead.

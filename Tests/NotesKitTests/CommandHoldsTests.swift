@@ -25,3 +25,14 @@ final class CommandHoldsTests: XCTestCase {
         XCTAssertNil(LiveFeed.Line(speaker: nil, settled: true, start: Date(), end: Date(), text: "hi").command)
     }
 }
+
+extension CommandHoldsTests {
+    func testPiecesCutAtTheHold() {
+        let t = Date(timeIntervalSince1970: 1_000_000)
+        let holds = CommandHolds(ranges: [t.addingTimeInterval(4)...t.addingTimeInterval(6)])
+        // 10 words over 10 s: words 5 and 6 (4-6 s) are the command, with slack a word either side may join.
+        let p = holds.pieces(of: "a b c d e f g h i j", from: t, to: t.addingTimeInterval(10))
+        XCTAssertEqual(p.map(\.command), [false, true, false])
+        XCTAssertTrue(p[1].text.contains("e f"))
+    }
+}
