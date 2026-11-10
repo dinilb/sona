@@ -30,6 +30,8 @@ enum TestRun {
     static let snapshot = env("LIVE_SNAPSHOT")
     /// `LIVE_DICTATE=1.0-4.2,8.0-11.5`: the dictation key held over those seconds of the test file (see TestDictation).
     static let dictate = env("LIVE_DICTATE").map(TestDictation.parse)
+    /// `LIVE_COMMAND=2.0-5.0`: Command held over those seconds of the test file (agent command mode, no real key).
+    static let command = env("LIVE_COMMAND").map(TestDictation.parse)
     static var isOn: Bool { file != nil || snapshot != nil }
     /// The host time both test files count as starting from (set the first time either opens).
     static let clockStart = hostNow() + 0.5
@@ -69,6 +71,7 @@ final class AppModel {
         didSet {
             writeStatus()
             // `LIVE_DICTATE`: the test file is playing, so its clock has started.
+            if mic == .running, let holds = TestRun.command, !commandScheduled { scheduleTestCommands(holds) }
             if mic == .running, let holds = TestRun.dictate, testDictation == nil { testDictation = TestDictation(holds, dictation: dictation) }
         }
     }
@@ -163,6 +166,11 @@ final class AppModel {
     @ObservationIgnored private var lingerUntil = 0.0
     @ObservationIgnored private let feedQueue = DispatchQueue(label: "sona.feed", qos: .utility)
     @ObservationIgnored private var lastFeed: LiveFeed?
+    @ObservationIgnored private let commandKey = CommandKey()
+    @ObservationIgnored private var commandScheduled = false
+    /// Agent command mode: the holds of Command saved so far today, and the one still going.
+    private(set) var commandHolds = CommandHolds()
+    private(set) var commandOpen: Date?
     @ObservationIgnored private var lastFeedBuild = 0.0
     @ObservationIgnored private var feedPending: DispatchWorkItem?
     @ObservationIgnored private var lastStatus: String?
@@ -294,6 +302,9 @@ final class AppModel {
     // MARK: starting
 
     func start() {
+        commandHolds = CommandHolds.load(around: Date(), to: Date())
+        commandKey.onChange = { [weak self] in self?.commandChanged() }
+        commandKey.start()
         dictation.blocked = { [weak self] in self?.dictationBlocked }
         dictation.onHold = { [weak self] held in self?.dictationHeld(held) }
         dictation.onPaste = { [weak self] text in self?.pasted(text) }
@@ -852,13 +863,43 @@ final class AppModel {
             feedLines = currentLines.suffix(400).filter { date($0.end) > now.addingTimeInterval(-600) }.map { line in
                 LiveFeed.Line(
                     speaker: labelled(line) ? Self.speakerName(line.speaker) : nil, settled: line.settled || !speakersActive,
-                    start: date(line.start), end: date(line.end + 0.24), text: line.text)
+                    start: date(line.start), end: date(line.end + 0.24), text: line.text,
+                    command: isCommand(line))
             }
         }
         let feed = LiveFeed(listening: sharing && mic == .running, engine: "Parakeet Unified 0.6B", speakers: speakersActive, lines: feedLines)
         if !force, let last = lastFeed, feed.sameContent(as: last) { return }
         lastFeed = feed
         feedQueue.async { feed.write() }
+    }
+
+    // MARK: agent commands
+
+    private func commandChanged() {
+        commandOpen = commandKey.heldSince
+        commandHolds = CommandHolds.load(around: Date(), to: Date())
+        lines = currentLines
+        publish(force: true)
+    }
+
+    /// Was this line said while Command was held? Those are the lines meant for an AI agent.
+    func isCommand(_ line: LiveLine) -> Bool {
+        let wall = wallClock
+        guard let a = wall.date(atSeconds: line.start), let b = wall.date(atSeconds: line.end) else { return false }
+        return commandHolds.covers(from: a, to: b, open: commandOpen)
+    }
+
+    /// `LIVE_COMMAND`: presses and releases the Command state at set seconds of the test file (no key events).
+    private func scheduleTestCommands(_ holds: [TestDictation.Hold]) {
+        commandScheduled = true
+        for hold in holds {
+            for (t, down) in [(hold.down, true), (hold.up, false)] {
+                let wait = max(TestRun.clockStart + t - hostNow(), 0)
+                DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
+                    MainActor.assumeIsolated { self?.commandKey.press(down) }
+                }
+            }
+        }
     }
 
     // MARK: the mic

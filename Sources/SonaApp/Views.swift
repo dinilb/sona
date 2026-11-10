@@ -269,7 +269,14 @@ struct NowView: View {
                         Theme.meta(!line.settled && line.speaker == nil ? "…" : AppModel.speakerName(line.speaker))
                             .opacity(line.settled ? 1 : 0.5)
                     }
-                    Theme.words(line.text)
+                    if model.isCommand(line) {
+                        Theme.meta("agent command", keepCase: true).foregroundStyle(Color.orange)
+                        Theme.words(line.text)
+                            .padding(6)
+                            .background(Color.orange.opacity(0.22), in: RoundedRectangle(cornerRadius: 6))
+                    } else {
+                        Theme.words(line.text)
+                    }
                 }
             }
         }

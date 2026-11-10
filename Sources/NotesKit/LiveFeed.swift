@@ -12,8 +12,11 @@ public struct LiveFeed: Codable, Equatable, Sendable {
         public var start: String
         public var end: String
         public var text: String
+        /// Said while Command was held: meant for an AI agent (nil: ambient speech).
+        public var command: Bool?
 
-        public init(speaker: String?, settled: Bool, start: Date, end: Date, text: String) {
+        public init(speaker: String?, settled: Bool, start: Date, end: Date, text: String, command: Bool = false) {
+            self.command = command ? true : nil
             self.speaker = speaker
             self.settled = settled
             self.start = NoteWriter.iso(start)
