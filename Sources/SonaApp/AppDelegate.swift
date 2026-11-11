@@ -210,7 +210,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         if model.liveLoadFailed { menu.addItem(action("Try the Download Again", #selector(retryDownload))) }
         menu.addItem(action("Open Sona", #selector(openWindow)))
         menu.addItem(.separator())
-        if model.isPaused {
+        if model.settings.alwaysOn, model.settings.manualStart, !model.isPaused {
+            menu.addItem(model.noteActive ? action("End Note", #selector(endNote)) : action("Start Note", #selector(startNote)))
+        } else if model.isPaused {
             menu.addItem(action("Resume", #selector(resume)))
         } else {
             menu.addItem(action("Pause for 1 Hour", #selector(pauseHour)))
@@ -256,6 +258,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     @objc private func resume() { model.resume() }
+    @objc private func startNote() { model.startNote() }
+    @objc private func endNote() { model.endNote() }
     @objc private func openWindow() { showWindow() }
     @objc private func openSettings() { showWindow(.settings) }
     @objc private func openAbout() { showWindow(.about) }

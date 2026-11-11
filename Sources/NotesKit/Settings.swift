@@ -38,6 +38,8 @@ public struct Settings: Codable, Equatable, Sendable {
     /// Also hear what this Mac plays (a video, a call), through a Core Audio tap, as its own track ("Mac audio").
     /// Off until turned on: it needs the System Audio Recording permission, asked for then.
     public var macAudio: Bool
+    /// With always-on: record only between "Start Note" and "End Note" in the menu, not all day. Dictation works either way.
+    public var manualStart = false
 
     public init(
         notesFolder: String = Paths.defaultNotesFolder.path, alwaysOn: Bool = true, dictation: Bool = true,
@@ -72,7 +74,7 @@ public struct Settings: Codable, Equatable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case notesFolder, alwaysOn, dictation, dictationKey, mcp, speakers, quietMinutes, model, keepAudio, launchAtLogin
-        case micUID, pausedUntil, onboarded, words, openMonths, macAudio
+        case micUID, pausedUntil, onboarded, words, openMonths, macAudio, manualStart
     }
 
     /// Missing keys fall back to defaults, so an older file still loads.
@@ -99,6 +101,7 @@ public struct Settings: Codable, Equatable, Sendable {
         words = (try? c.decodeIfPresent([WordFix].self, forKey: .words)) ?? []
         openMonths = (try? c.decodeIfPresent([String: Bool].self, forKey: .openMonths)) ?? [:]
         macAudio = try c.decodeIfPresent(Bool.self, forKey: .macAudio) ?? d.macAudio
+        manualStart = try c.decodeIfPresent(Bool.self, forKey: .manualStart) ?? false
         if !["v2", "v3"].contains(model) { model = "v2" }
         quietMinutes = min(max(quietMinutes, 0.05), 120)
     }
@@ -121,6 +124,7 @@ public struct Settings: Codable, Equatable, Sendable {
         try c.encode(words, forKey: .words)
         try c.encode(openMonths, forKey: .openMonths)
         try c.encode(macAudio, forKey: .macAudio)
+        try c.encode(manualStart, forKey: .manualStart)
     }
 
     /// The settings file as it is on disk.

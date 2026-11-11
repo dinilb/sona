@@ -254,6 +254,33 @@ final class AppModel {
 
     var isPaused: Bool { settings.isPaused() }
 
+    /// "Only when I start it" mode, between notes: the mic is off for notes (dictation still works).
+    private(set) var noteActive = false
+    var manualIdle: Bool { settings.alwaysOn && settings.manualStart && !noteActive }
+    /// Notes are being recorded (or would be, if not paused): dictations then land in the notes.
+    var takesNotes: Bool { settings.alwaysOn && !manualIdle }
+
+    func startNote() {
+        guard settings.manualStart, !noteActive else { return }
+        noteActive = true
+        if settings.pausedUntil != nil { update { $0.pausedUntil = nil } }
+        recorder?.reset()
+        Log.note("note started")
+        updateMic()
+        publish(force: true)
+    }
+
+    /// Closes the note now, without waiting for quiet.
+    func endNote() {
+        guard noteActive else { return }
+        noteActive = false
+        recorder?.close("note ended")
+        hearing = false
+        Log.note("note ended")
+        updateMic()
+        publish(force: true)
+    }
+
     /// What's wrong, in plain words, if anything.
     var problem: String? {
         if micDenied { return "No microphone access. Allow Sona in System Settings, Privacy & Security, Microphone." }
@@ -268,6 +295,7 @@ final class AppModel {
         if !settings.onboarded { return .notSetUp }
         if problem != nil { return .problem }
         if isPaused { return .paused }
+        if manualIdle { return .off }
         if hearing { return .hearing }
         if case .loading = live { return .loading }
         if !settings.alwaysOn { return .off }
@@ -279,6 +307,7 @@ final class AppModel {
         if let problem { return "Problem: \(problem)" }
         if let until = settings.pausedUntil, isPaused { return "Paused until \(Self.when(until))" }
         if case .loading(let p, let text) = live { return p > 0.01 ? "\(text) \(Int(p * 100))%" : text }
+        if manualIdle { return settings.dictation ? "No note running. Start one from the menu, or hold \(settings.dictationKey.title) to dictate." : "No note running. Start one from the menu" }
         guard settings.alwaysOn else {
             return settings.dictation ? "Always-on is off. Hold \(settings.dictationKey.title) to dictate." : "Always-on and dictation are off"
         }
@@ -618,7 +647,7 @@ final class AppModel {
     /// something plays).
     private func updateMac(listening: Bool? = nil) {
         let ready = TestRun.file != nil ? session != nil : recorder != nil || session != nil
-        let listening = listening ?? (begun && !isPaused && micAllowed && settings.alwaysOn && ready)
+        let listening = listening ?? (begun && !isPaused && micAllowed && takesNotes && ready)
         macDriver?.update(
             // A test run never taps this Mac: only `LIVE_FILE_MAC` stands in for it.
             switchOn: settings.macAudio && (!TestRun.isOn || TestRun.fileMac != nil), listening: listening,
@@ -869,7 +898,7 @@ final class AppModel {
         feedPending?.cancel()
         feedPending = nil
         lastFeedBuild = ProcessInfo.processInfo.systemUptime
-        let sharing = settings.alwaysOn && !isPaused && session != nil
+        let sharing = takesNotes && !isPaused && session != nil
         var feedLines: [LiveFeed.Line] = []
         if sharing {
             let now = Date(), wall = wallClock
@@ -960,14 +989,14 @@ final class AppModel {
         let dictating = holding || hostNow() < lingerUntil
         // A test file is played once the live transcript is ready too, so all of it is heard live.
         let ready = TestRun.file != nil ? session != nil : recorder != nil || session != nil
-        let want = begun && !isPaused && micAllowed && (settings.alwaysOn && ready || dictating && session != nil)
+        let want = begun && !isPaused && micAllowed && (takesNotes && ready || dictating && session != nil)
         micDriver?.setWanted(want)
-        updateMac(listening: want && settings.alwaysOn)
+        updateMac(listening: want && takesNotes)
     }
 
     /// A dictation was pasted. With always-on off it goes in the Dictations list (with it on, it's in the notes).
     private func pasted(_ text: String) {
-        guard !settings.alwaysOn else { return }
+        guard !takesNotes else { return }
         let notes = settings.notesURL, at = Date()
         feedQueue.async {
             do { try Dictations.append(text, at: at, notes: notes) } catch { Log.note("couldn't save a dictation: \(Log.describe(error))") }
@@ -1259,6 +1288,12 @@ final class AppModel {
             try new.save()
             settingsUnreadable = false  // the file reads again, with what the Settings screen shows
         } catch { Log.note("couldn't save settings: \(Log.describe(error))") }
+        if new.manualStart != old.manualStart {
+            noteActive = false
+            if new.manualStart { recorder?.close("note-taker mode on") }
+            updateMic()
+            publish(force: true)
+        }
         if new.alwaysOn != old.alwaysOn {
             Log.note("always-on \(new.alwaysOn ? "on" : "off")")
             if begun { Task { await syncRecorder() } }

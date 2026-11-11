@@ -728,6 +728,13 @@ struct SettingsView: View {
                     : "Off: the microphone only opens while you hold the dictation key. Only the text you dictate is kept, in Dictations."
             )
             .font(Theme.small).foregroundStyle(Theme.grey)
+            if model.settings.alwaysOn {
+                Toggle("Only record when I start a note", isOn: binding(\.manualStart))
+                Text(model.settings.manualStart
+                    ? "Start Note and End Note in the menu bar. End Note closes the note straight away."
+                    : "Off: it records all day. Pause is in the menu bar.")
+                .font(Theme.small).foregroundStyle(Theme.grey)
+            }
         }
         SettingsSection {
             Toggle("Hold to dictate", isOn: binding(\.dictation))
