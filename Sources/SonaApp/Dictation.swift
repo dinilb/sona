@@ -169,6 +169,10 @@ final class Dictation {
     private let minimumHold = 0.25
     /// The longest hold; past it, it pastes what it has.
     private let maxHold = 120.0
+    /// Double-tap ⌘ started it: it listens with no key held, until the next tap of ⌘ (or the dictation key).
+    @ObservationIgnored private(set) var latched = false
+    /// A latched dictation stops by itself after this long, in case the tap to end it never comes.
+    private let maxLatched = 600.0
 
     /// The session words come from. Dictation only runs while one is attached.
     func attach(_ session: LiveSession, relay: RelaySource) {
@@ -355,8 +359,23 @@ final class Dictation {
 
     /// Something else happened during the hold (another key, a shortcut, an app switch): it wasn't dictation.
     func interrupted() {
-        if phase == .listening { cancel("another key") }
+        if phase == .listening, !latched { cancel("another key") }
     }
+
+    /// Double-tap ⌘: start dictating without holding anything; called again (one tap of ⌘), stop and paste.
+    func toggleLatched() {
+        switch phase {
+        case .idle:
+            latched = true
+            begin(at: hostNow())
+            if phase != .listening { latched = false }
+        case .listening where latched: release(at: hostNow())
+        default: break
+        }
+    }
+
+    /// Listening with no key held (double-tap ⌘), so one tap of ⌘ ends it.
+    var isLatched: Bool { phase == .listening && latched }
 
     private func begin(at host: Double) {
         guard enabled else { return }
@@ -398,7 +417,8 @@ final class Dictation {
         keyTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, self.phase == .listening else { return }
-                if !self.isKeyStillDown() || hostNow() - self.pressedAt > self.maxHold { self.release(at: hostNow()) }
+                let keyUp = !self.latched && !self.isKeyStillDown()
+                if keyUp || hostNow() - self.pressedAt > (self.latched ? self.maxLatched : self.maxHold) { self.release(at: hostNow()) }
             }
         }
         if !flowing { waitForMic(generation) }
@@ -698,6 +718,7 @@ final class Dictation {
         keyTimer?.invalidate()
         keyTimer = nil
         phase = .idle
+        latched = false
         pendingPress = false
         tokens = []
         waiting = false

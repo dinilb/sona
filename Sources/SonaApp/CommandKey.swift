@@ -13,6 +13,8 @@ final class CommandKey {
     var onChange: () -> Void = {}
     /// Command tapped twice quickly, alone: start or stop capturing speech to paste.
     var onDoubleTap: () -> Void = {}
+    /// Dictation is latched on (by a double tap): then one tap is enough to end it.
+    var isLatched: () -> Bool = { false }
     private var keyMonitor: Any?
     private var otherKeyDuringPress = false
     private var lastTapEnd: Date?
@@ -59,7 +61,10 @@ final class CommandKey {
                 Log.note("agent command saved")
                 lastTapEnd = nil
             } else if length <= Self.maxTap, !otherKeyDuringPress {
-                if let last = lastTapEnd, start.timeIntervalSince(last) <= Self.tapGap {
+                if isLatched() {
+                    lastTapEnd = nil
+                    onDoubleTap()
+                } else if let last = lastTapEnd, start.timeIntervalSince(last) <= Self.tapGap {
                     lastTapEnd = nil
                     onDoubleTap()
                 } else {

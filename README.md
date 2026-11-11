@@ -75,7 +75,7 @@ Settings > Hear this Mac's audio too (off by default; macOS 14.2 or later):
 
 Hold **Command** (alone, half a second or more) while you talk and Sona marks what you said as meant for an AI agent: highlighted in Now, and shown as `[AGENT COMMAND]` in the MCP's `live`, `transcript` and `read_conversation` (`command: true` on the line in `Live/now.json`). Everything else stays ambient speech. Holds are kept in `Commands/YYYY-MM-DD.jsonl` in the support folder. Sona only watches the Command key's up and down (not the keys you type), and a hold with Shift, Option or Control is a shortcut and doesn't count. Words are matched to the hold by time, good to about a word.
 
-**Double-tap Command** (two quick taps, nothing else pressed) starts capturing what you say; double-tap again and the words said in between are pasted where your cursor is. It uses the live words, so it's not the second, more accurate pass dictation makes. A test run (`LIVE_FILE` with `LIVE_DOUBLETAP=2.5,5.5`) writes the result to `capture-test.txt` in the test home instead of pasting.
+**Double-tap Command** (two quick taps, nothing else pressed) starts dictating without holding anything: the dictation pill stays up and shows your words. Tap Command once more and it's transcribed and pasted where your cursor is, the same as letting go of the dictation key. It stops by itself after 10 minutes. A test run (`LIVE_FILE` with `LIVE_DOUBLETAP=2.5,5.5`) writes the result to `dictations-test.jsonl` in the test home instead of pasting.
 
 ## Note-taker mode and power log
 
