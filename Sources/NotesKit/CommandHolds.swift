@@ -96,6 +96,21 @@ public extension CommandHolds {
     }
 }
 
+public extension CommandHolds {
+    /// The words of a line said between `from` and `to` (spread evenly over the line, as in `pieces`).
+    static func words(of text: String, lineStart: Date, lineEnd: Date, from: Date, to: Date) -> String {
+        let words = text.split(separator: " ")
+        guard words.count > 1, lineEnd > lineStart else {
+            return lineEnd >= from && lineStart <= to ? text : ""
+        }
+        let step = lineEnd.timeIntervalSince(lineStart) / Double(words.count)
+        return words.enumerated().filter { i, _ in
+            let mid = lineStart.addingTimeInterval(step * (Double(i) + 0.5))
+            return mid >= from && mid <= to
+        }.map { String($0.element) }.joined(separator: " ")
+    }
+}
+
 public extension LiveFeed.Line {
     static let commandMark = "[AGENT COMMAND]"
 }

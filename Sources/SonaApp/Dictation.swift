@@ -714,6 +714,9 @@ final class Dictation {
         onHold(on)
     }
 
+    /// A short note in the pill (capture mode's start and end).
+    func announce(_ message: String, for seconds: Double = 1.5) { flash(message, for: seconds) }
+
     /// A note in the pill for a moment (no listening behind it), then it fades out. `copied`: the words were left on
     /// the clipboard instead of pasted, shown as a small toast whose clipboard pops in.
     private func flash(_ message: String, for seconds: Double = 1.2, copied: Bool = false) {

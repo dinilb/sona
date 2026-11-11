@@ -36,3 +36,11 @@ extension CommandHoldsTests {
         XCTAssertTrue(p[1].text.contains("e f"))
     }
 }
+
+extension CommandHoldsTests {
+    func testWordsInAWindow() {
+        let t = Date(timeIntervalSince1970: 1_000_000)
+        let text = CommandHolds.words(of: "a b c d e f g h i j", lineStart: t, lineEnd: t.addingTimeInterval(10), from: t.addingTimeInterval(3), to: t.addingTimeInterval(6))
+        XCTAssertEqual(text, "d e f")
+    }
+}

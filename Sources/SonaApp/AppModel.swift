@@ -32,6 +32,9 @@ enum TestRun {
     static let dictate = env("LIVE_DICTATE").map(TestDictation.parse)
     /// `LIVE_COMMAND=2.0-5.0`: Command held over those seconds of the test file (agent command mode, no real key).
     static let command = env("LIVE_COMMAND").map(TestDictation.parse)
+    /// `LIVE_DOUBLETAP=2.0,6.0`: Command double-tapped at those seconds of the test file (capture to paste). The result
+    /// goes to `capture-test.txt` in the test home instead of being pasted.
+    static let doubleTap = env("LIVE_DOUBLETAP").map { $0.split(separator: ",").compactMap { Double($0) } }
     static var isOn: Bool { file != nil || snapshot != nil }
     /// The host time both test files count as starting from (set the first time either opens).
     static let clockStart = hostNow() + 0.5
@@ -71,6 +74,13 @@ final class AppModel {
         didSet {
             writeStatus()
             // `LIVE_DICTATE`: the test file is playing, so its clock has started.
+            if mic == .running, let taps = TestRun.doubleTap, !tapsScheduled {
+                tapsScheduled = true
+                for t in taps {
+                    let wait = max(TestRun.clockStart + t - hostNow(), 0)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in MainActor.assumeIsolated { self?.toggleCapture() } }
+                }
+            }
             if mic == .running, let holds = TestRun.command, !commandScheduled { scheduleTestCommands(holds) }
             if mic == .running, let holds = TestRun.dictate, testDictation == nil { testDictation = TestDictation(holds, dictation: dictation) }
         }
@@ -168,6 +178,9 @@ final class AppModel {
     @ObservationIgnored private var lastFeed: LiveFeed?
     @ObservationIgnored private let commandKey = CommandKey()
     @ObservationIgnored private var commandScheduled = false
+    @ObservationIgnored private var tapsScheduled = false
+    /// Double-tap Command capture: when it started (nil: not capturing).
+    private(set) var captureStart: Date?
     /// Agent command mode: the holds of Command saved so far today, and the one still going.
     private(set) var commandHolds = CommandHolds()
     private(set) var commandOpen: Date?
@@ -304,6 +317,7 @@ final class AppModel {
     func start() {
         commandHolds = CommandHolds.load(around: Date(), to: Date())
         commandKey.onChange = { [weak self] in self?.commandChanged() }
+        commandKey.onDoubleTap = { [weak self] in self?.toggleCapture() }
         commandKey.start()
         dictation.blocked = { [weak self] in self?.dictationBlocked }
         dictation.onHold = { [weak self] held in self?.dictationHeld(held) }
@@ -882,6 +896,40 @@ final class AppModel {
         commandHolds = CommandHolds.load(around: Date(), to: Date())
         lines = currentLines
         publish(force: true)
+    }
+
+    /// Double-tap Command: start capturing what's said; the next double-tap pastes it where the cursor is.
+    func toggleCapture() {
+        guard let started = captureStart else {
+            captureStart = Date()
+            Log.note("capture started")
+            dictation.announce("Capturing… double-tap ⌘ to paste", for: 2)
+            return
+        }
+        captureStart = nil
+        // The last words are still being recognised: give them a moment.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            MainActor.assumeIsolated { self?.finishCapture(from: started, to: Date()) }
+        }
+    }
+
+    private func finishCapture(from start: Date, to end: Date) {
+        let wall = wallClock
+        var parts: [String] = []
+        for line in currentLines where (line.speaker ?? 0) < LiveLine.macSlot {
+            guard let a = wall.date(atSeconds: line.start), let b = wall.date(atSeconds: line.end + 0.24) else { continue }
+            let text = CommandHolds.words(of: line.text, lineStart: a, lineEnd: b, from: start, to: end)
+            if !text.isEmpty { parts.append(text) }
+        }
+        let text = parts.joined(separator: " ").trimmingCharacters(in: .whitespaces)
+        Log.note("capture ended: \(text.split(separator: " ").count) words")
+        guard !text.isEmpty else { dictation.announce("Nothing captured"); return }
+        if TestRun.isOn {
+            try? text.write(to: Paths.support.appendingPathComponent("capture-test.txt"), atomically: true, encoding: .utf8)
+            return
+        }
+        Dictation.paste(text)
+        dictation.announce("Pasted")
     }
 
     /// Was this line said while Command was held? Those are the lines meant for an AI agent.
