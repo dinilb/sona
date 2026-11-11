@@ -938,10 +938,11 @@ final class AppModel {
         guard let started = captureStart else {
             captureStart = Date()
             Log.note("capture started")
-            dictation.announce("Capturing… double-tap ⌘ to paste", for: 2)
+            dictation.stickyNotice = "Capturing… double-tap ⌘ to paste"
             return
         }
         captureStart = nil
+        dictation.stickyNotice = nil
         // The last words are still being recognised: give them a moment.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
             MainActor.assumeIsolated { self?.finishCapture(from: started, to: Date()) }

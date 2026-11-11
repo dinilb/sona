@@ -705,6 +705,7 @@ final class Dictation {
         panel?.orderOut(nil)
         panel = nil
         hold(false)
+        restoreSticky()
     }
 
     private func hold(_ on: Bool) {
@@ -717,6 +718,28 @@ final class Dictation {
     /// A short note in the pill (capture mode's start and end).
     func announce(_ message: String, for seconds: Double = 1.5) { flash(message, for: seconds) }
 
+    /// A note that stays in the pill until `stickyNotice` is cleared (capture mode, while it's capturing). A dictation
+    /// or a flash may cover it meanwhile; it comes back after.
+    var stickyNotice: String? {
+        didSet { if stickyNotice != oldValue { restoreSticky() } }
+    }
+
+    private func restoreSticky() {
+        guard phase == .idle else { return }
+        guard let message = stickyNotice else {
+            if notice != nil || panel != nil {
+                notice = nil
+                noticeCopied = false
+                panel?.orderOut(nil)
+                panel = nil
+            }
+            return
+        }
+        notice = message
+        noticeCopied = false
+        showPanel()
+    }
+
     /// A note in the pill for a moment (no listening behind it), then it fades out. `copied`: the words were left on
     /// the clipboard instead of pasted, shown as a small toast whose clipboard pops in.
     private func flash(_ message: String, for seconds: Double = 1.2, copied: Bool = false) {
@@ -727,6 +750,12 @@ final class Dictation {
         let shown = panel
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
             guard let self, self.phase == .idle, self.panel === shown else { return }
+            // Capturing: the pill stays; only this flash's text goes back to the capture note.
+            if let sticky = self.stickyNotice, message != sticky {
+                self.notice = sticky
+                self.noticeCopied = false
+                return
+            }
             guard let shown else {
                 self.notice = nil
                 self.noticeCopied = false
@@ -742,6 +771,7 @@ final class Dictation {
                     self.notice = nil
                     self.noticeCopied = false
                     self.panel = nil
+                    self.restoreSticky()
                 }
             }
         }
