@@ -15,6 +15,7 @@ let usage = """
       sona models [--model v2|v3]       Download the models (one time, then fully offline)
       sona mcp                          Run the MCP server on stdio (same as sona-mcp)
       sona spool-serve                  For the MCP server: transcribe audio not yet in a note, on request (stdin)
+      sona power                        What Sona used today, by what it was doing
       sona status                       Settings, models, spool and app state
 
     OPTIONS
@@ -139,6 +140,7 @@ do {
         MCPServer(store: NoteStore(settings: options.settings()), enabled: { Settings.aiAccessAllowed }, spool: .helper(helper)).run()
     case "spool-serve": await runSpoolServe(options)
     case "status": runStatus(options)
+    case "power": print(PowerSample.summary(PowerSample.load(day: NoteWriter.dayString(Date()))))
     case "help", "-h", "--help": print(usage)
     default:
         say("error: unknown command \(options.command)\n")

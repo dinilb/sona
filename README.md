@@ -77,6 +77,12 @@ Hold **Command** (alone, half a second or more) while you talk and Sona marks wh
 
 **Double-tap Command** (two quick taps, nothing else pressed) starts capturing what you say; double-tap again and the words said in between are pasted where your cursor is. It uses the live words, so it's not the second, more accurate pass dictation makes. A test run (`LIVE_FILE` with `LIVE_DOUBLETAP=2.5,5.5`) writes the result to `capture-test.txt` in the test home instead of pasting.
 
+## Note-taker mode and power log
+
+Settings > "Only record when I start a note" (with always-on): the menu bar shows Start Note and End Note instead of Pause. End Note closes the note straight away. Dictation and the Command features work either way.
+
+Every minute Sona writes its own CPU, energy (the kernel's per-process counter), memory and the battery level, with what it was doing (mic open, Mac audio tap, making a note, hearing someone), to `Power/YYYY-MM-DD.jsonl` in the support folder. Nothing from your speech. `sona power` sums today up by activity.
+
 ## Dictation
 
 - Hold the key and talk. The live words show in a slim one-line pill at the bottom of the screen, above the Dock, as you speak (the latest words, scrolling left as the line fills). Let go, and what you said is transcribed once more, whole, by the notes model (it hears the sentence at once, so it's more accurate, quiet speech too), then pasted where your cursor is. Your clipboard is put back 3 s later (if the words are still on it), and clipboard managers are told to skip the words. A password copied from a password manager is never put back: the clipboard is left empty instead.

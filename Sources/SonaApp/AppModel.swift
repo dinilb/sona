@@ -177,6 +177,7 @@ final class AppModel {
     @ObservationIgnored private let feedQueue = DispatchQueue(label: "sona.feed", qos: .utility)
     @ObservationIgnored private var lastFeed: LiveFeed?
     @ObservationIgnored private let commandKey = CommandKey()
+    @ObservationIgnored private let power = PowerSampler()
     @ObservationIgnored private var commandScheduled = false
     @ObservationIgnored private var tapsScheduled = false
     /// Double-tap Command capture: when it started (nil: not capturing).
@@ -348,6 +349,11 @@ final class AppModel {
         commandKey.onChange = { [weak self] in self?.commandChanged() }
         commandKey.onDoubleTap = { [weak self] in self?.toggleCapture() }
         commandKey.start()
+        power.state = { [weak self] in
+            guard let self else { return (false, false, false, false, false) }
+            return (self.mic == .running, self.macAudio == .on, self.processing.busy, self.hearing, self.recorder != nil)
+        }
+        power.start(every: ProcessInfo.processInfo.environment["SONA_POWER_SECONDS"].flatMap(Double.init) ?? 60)
         dictation.blocked = { [weak self] in self?.dictationBlocked }
         dictation.onHold = { [weak self] held in self?.dictationHeld(held) }
         dictation.onPaste = { [weak self] text in self?.pasted(text) }
